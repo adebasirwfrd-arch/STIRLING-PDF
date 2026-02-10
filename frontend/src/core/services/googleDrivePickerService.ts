@@ -130,10 +130,8 @@ class GoogleDrivePickerService {
       throw new Error('Google Drive service not initialized');
     }
 
-    // Request access token if not present
-    if (!this.accessToken) {
-      await this.requestAccessToken();
-    }
+    // Always request access token to ensure it's fresh and valid
+    await this.requestAccessToken();
 
     // Create and show picker
     return this.createPicker(options);
@@ -163,7 +161,8 @@ class GoogleDrivePickerService {
         resolve();
       };
 
-      // prompt: '' enables silent token acquisition if possible
+      // prompt: '' is the standard way to get a token seamlessly if already authorized
+      // If the user wants to avoid the consent screen, we don't force 'consent'
       this.tokenClient.requestAccessToken({
         prompt: '',
       });
@@ -198,16 +197,9 @@ class GoogleDrivePickerService {
         .setDeveloperKey(this.config.apiKey)
         .setAppId(this.config.appId)
         .setOAuthToken(this.accessToken)
-        .setOrigin(window.location.origin) // Explicitly set origin to avoid confusion
         .addView(view1)
         .addView(view2)
         .setCallback((data: any) => this.pickerCallback(data, resolve, reject));
-
-      console.log('Building Picker with:', {
-        appId: this.config.appId,
-        origin: window.location.origin,
-        hasAccessToken: !!this.accessToken
-      });
 
       if (options.multiple) {
         builder.enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED);
