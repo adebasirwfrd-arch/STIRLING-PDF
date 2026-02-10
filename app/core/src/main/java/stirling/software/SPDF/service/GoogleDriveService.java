@@ -1,6 +1,5 @@
 package stirling.software.SPDF.service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -18,7 +17,7 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.auth.oauth2.ServiceAccountCredentials;
+import com.google.auth.oauth2.UserCredentials;
 
 import jakarta.annotation.PostConstruct;
 
@@ -32,22 +31,13 @@ public class GoogleDriveService {
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_FILE);
     
-    // Default folder ID, can be overridden by GOOGLE_DRIVE_TARGET_FOLDER_ID environment variable
     private static final String DEFAULT_TARGET_FOLDER_ID = "1QAP_f4Uzt2jPeSII5sGD0uu1mIiTdZbQ";
 
     private Drive driveService;
-    private String serviceAccountEmail = "Unknown";
 
     @PostConstruct
     public void init() {
-        log.info("GoogleDriveService initialized. Checking credentials...");
-        try {
-            getDriveService();
-            log.info("Google Drive Service established for account: " + serviceAccountEmail);
-            log.info("Target Folder ID set to: " + getTargetFolderId());
-        } catch (Exception e) {
-            log.warn("Google Drive Service failed to initialize on startup: " + e.getMessage());
-        }
+        log.info("GoogleDriveService initialized. Ready for OAuth2 Sync.");
     }
 
     private String getTargetFolderId() {
@@ -56,24 +46,20 @@ public class GoogleDriveService {
     }
 
     private GoogleCredentials getCredentials() throws IOException {
-        String serviceAccountJson = System.getenv("GOOGLE_SERVICE_ACCOUNT_JSON");
-        if (serviceAccountJson == null || serviceAccountJson.isEmpty()) {
-            throw new IOException("GOOGLE_SERVICE_ACCOUNT_JSON environment variable is not set!");
+        String clientId = System.getenv("GOOGLE_DRIVE_CLIENT_ID");
+        String clientSecret = System.getenv("GOOGLE_DRIVE_CLIENT_SECRET");
+        String refreshToken = System.getenv("GOOGLE_DRIVE_REFRESH_TOKEN");
+
+        if (clientId == null || clientSecret == null || refreshToken == null) {
+            log.error("Missing Google Drive OAuth2 credentials! Ensure GOOGLE_DRIVE_CLIENT_ID, CLIENT_SECRET, and REFRESH_TOKEN are set.");
+            throw new IOException("Missing OAuth2 credentials");
         }
         
-        try {
-            GoogleCredentials credentials = GoogleCredentials.fromStream(new ByteArrayInputStream(serviceAccountJson.getBytes()))
-                    .createScoped(SCOPES);
-            
-            if (credentials instanceof ServiceAccountCredentials) {
-                this.serviceAccountEmail = ((ServiceAccountCredentials) credentials).getClientEmail();
-            }
-            
-            return credentials;
-        } catch (Exception e) {
-            log.error("Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON: " + e.getMessage());
-            throw new IOException("Invalid Google Service Account credentials", e);
-        }
+        return UserCredentials.newBuilder()
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
+                .setRefreshToken(refreshToken)
+                .build();
     }
 
     private Drive getDriveService() throws Exception {
@@ -83,6 +69,7 @@ public class GoogleDriveService {
             driveService = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, new HttpCredentialsAdapter(credentials))
                     .setApplicationName(APPLICATION_NAME)
                     .build();
+            log.info("Google Drive Service established using User Refresh Token.");
         }
         return driveService;
     }
@@ -99,13 +86,17 @@ public class GoogleDriveService {
         FileContent mediaContent = new FileContent(mimeType, filePathIo);
         
         try {
-            File file = service.files().create(fileMetadata, mediaContent).setFields("id").execute();
-            log.info("File successfully uploaded to Google Drive. ID: " + file.getId() + " (Owner: " + serviceAccountEmail + ")");
+            File file = service.files().create(fileMetadata, mediaContent)
+                    .setFields("id")
+                    .setSupportsAllDrives(true)
+                    .execute();
+            log.info("File successfully uploaded to Google Drive. ID: " + file.getId());
             return file.getId();
         } catch (Exception e) {
-            log.error("Google Drive upload failed for account " + serviceAccountEmail + ": " + e.getMessage());
-            if (e.getMessage().contains("storageQuotaExceeded")) {
-                log.error("CRITICAL: Service Account has no storage quota. You MUST share the target folder (" + getTargetFolderId() + ") with the email: " + serviceAccountEmail + " and grant 'Editor' permissions.");
+            log.error("Google Drive upload failed: " + e.getMessage());
+            // If token expired or other auth issue, clear service to force re-auth next time
+            if (e.getMessage().contains("401") || e.getMessage().contains("403")) {
+                driveService = null;
             }
             throw e;
         }
