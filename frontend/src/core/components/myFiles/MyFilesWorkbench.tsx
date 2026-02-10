@@ -64,8 +64,10 @@ interface FilePreviewModalProps {
   opened: boolean;
   onClose: () => void;
   file: StirlingFileStub;
+  fileUrl: string | null;
   onPrev: () => void;
   onNext: () => void;
+  loading?: boolean;
   actions: {
     onEffects: () => void;
     onShare: () => void;
@@ -74,7 +76,7 @@ interface FilePreviewModalProps {
   };
 }
 
-const FilePreviewModal = ({ opened, onClose, file, onPrev, onNext, actions }: FilePreviewModalProps) => {
+const FilePreviewModal = ({ opened, onClose, file, fileUrl, onPrev, onNext, loading, actions }: FilePreviewModalProps) => {
   const { t } = useTranslation();
 
   return (
@@ -94,16 +96,20 @@ const FilePreviewModal = ({ opened, onClose, file, onPrev, onNext, actions }: Fi
                 <LocalIcon icon="auto-fix-high" />
               </ActionIcon>
             </Tooltip>
-            <Tooltip label={t('myFiles.share', 'Share')}>
-              <ActionIcon variant="light" color="teal" size="lg" onClick={actions.onShare}>
-                <LocalIcon icon="share-rounded" />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label={t('myFiles.print', 'Print')}>
-              <ActionIcon variant="light" color="gray" size="lg" onClick={actions.onPrint}>
-                <LocalIcon icon="print" />
-              </ActionIcon>
-            </Tooltip>
+            {fileUrl && (
+              <>
+                <Tooltip label={t('myFiles.share', 'Share')}>
+                  <ActionIcon variant="light" color="teal" size="lg" onClick={actions.onShare}>
+                    <LocalIcon icon="share-rounded" />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label={t('myFiles.print', 'Print')}>
+                  <ActionIcon variant="light" color="gray" size="lg" onClick={actions.onPrint}>
+                    <LocalIcon icon="print" />
+                  </ActionIcon>
+                </Tooltip>
+              </>
+            )}
             <ActionIcon variant="light" color="red" size="lg" onClick={actions.onDelete}>
               <LocalIcon icon="delete" />
             </ActionIcon>
@@ -122,13 +128,18 @@ const FilePreviewModal = ({ opened, onClose, file, onPrev, onNext, actions }: Fi
             <LocalIcon icon="chevron-left" />
           </ActionIcon>
 
-          <Image 
-            src={file.thumbnailUrl} 
-            fit="contain" 
-            h="85vh" 
-            alt={file.name} 
-            draggable={false}
-          />
+          {loading ? (
+            <Loader size="xl" color="white" />
+          ) : (
+            <Image 
+              src={fileUrl || file.thumbnailUrl} 
+              fit="contain" 
+              h="85vh" 
+              alt={file.name} 
+              draggable={false}
+              fallbackSrc="https://placehold.co/800x600?text=Loading+Preview..."
+            />
+          )}
 
           <ActionIcon 
             variant="transparent" 
@@ -160,6 +171,8 @@ export default function MyFilesWorkbench() {
   // Preview state
   const [previewOpened, setPreviewOpened] = useState(false);
   const [previewFileIndex, setPreviewFileIndex] = useState<number | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // Modals state
   const [effectsOpened, setEffectsOpened] = useState(false);
@@ -367,6 +380,32 @@ export default function MyFilesWorkbench() {
 
   const previewFile = previewFileIndex !== null ? currentFolderFiles[previewFileIndex] : null;
 
+  // Effect to load full preview URL
+  useEffect(() => {
+    if (previewFile) {
+      const loadPreview = async () => {
+        setPreviewLoading(true);
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        try {
+          const file = await fileStorage.getStirlingFile(previewFile.id);
+          if (file) {
+            setPreviewUrl(URL.createObjectURL(file));
+          }
+        } catch (error) {
+          console.error('Failed to load full preview:', error);
+        } finally {
+          setPreviewLoading(false);
+        }
+      };
+      loadPreview();
+    } else {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+    }
+  }, [previewFileIndex, currentFolderFiles]);
+
   if (loading) {
     return (
       <Box h="100%" p="xl" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -566,6 +605,8 @@ export default function MyFilesWorkbench() {
           opened={previewOpened}
           onClose={() => setPreviewOpened(false)}
           file={previewFile}
+          fileUrl={previewUrl}
+          loading={previewLoading}
           onPrev={handlePrevPreview}
           onNext={handleNextPreview}
           actions={{

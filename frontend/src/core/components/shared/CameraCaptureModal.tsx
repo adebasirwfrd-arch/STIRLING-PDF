@@ -214,9 +214,30 @@ export default function CameraCaptureModal({ opened, onClose, onCapture }: Camer
     const fileName = `scan-${Date.now()}.jpg`;
     const file = new File([blob], fileName, { type: 'image/jpeg' });
     
+    // Generate a small thumbnail for the grid view
+    let thumbnail: string | undefined;
+    try {
+      const thumbCanvas = document.createElement('canvas');
+      const thumbCtx = thumbCanvas.getContext('2d');
+      if (thumbCtx) {
+        const img = new Image();
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.src = capturedImage;
+        });
+        const scale = 200 / Math.max(img.width, img.height);
+        thumbCanvas.width = img.width * scale;
+        thumbCanvas.height = img.height * scale;
+        thumbCtx.drawImage(img, 0, 0, thumbCanvas.width, thumbCanvas.height);
+        thumbnail = thumbCanvas.toDataURL('image/jpeg', 0.7);
+      }
+    } catch (e) {
+      console.warn('Failed to generate thumbnail:', e);
+    }
+
     // Create StirlingFile and Stub with folder/tags
     const stirlingFile = createStirlingFile(file);
-    const stub = createNewStirlingFileStub(file, stirlingFile.fileId);
+    const stub = createNewStirlingFileStub(file, stirlingFile.fileId, thumbnail);
     stub.folder = folderName.trim() || t('camera.defaultFolder', 'Scans');
     stub.tags = ['scan'];
 
