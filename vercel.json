@@ -4,6 +4,34 @@
     "outputDirectory": "frontend/dist",
     "rewrites": [
         {
+            "source": "/api/(.*)",
+            "destination": "https://ade-basirwfrd-pdfedit.hf.space/api/$1"
+        },
+        {
+            "source": "/oauth2/(.*)",
+            "destination": "https://ade-basirwfrd-pdfedit.hf.space/oauth2/$1"
+        },
+        {
+            "source": "/saml2/(.*)",
+            "destination": "https://ade-basirwfrd-pdfedit.hf.space/saml2/$1"
+        },
+        {
+            "source": "/login/oauth2/(.*)",
+            "destination": "https://ade-basirwfrd-pdfedit.hf.space/login/oauth2/$1"
+        },
+        {
+            "source": "/login/saml2/(.*)",
+            "destination": "https://ade-basirwfrd-pdfedit.hf.space/login/saml2/$1"
+        },
+        {
+            "source": "/swagger-ui/(.*)",
+            "destination": "https://ade-basirwfrd-pdfedit.hf.space/swagger-ui/$1"
+        },
+        {
+            "source": "/v1/api-docs/(.*)",
+            "destination": "https://ade-basirwfrd-pdfedit.hf.space/v1/api-docs/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
