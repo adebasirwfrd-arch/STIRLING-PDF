@@ -198,9 +198,16 @@ class GoogleDrivePickerService {
         .setDeveloperKey(this.config.apiKey)
         .setAppId(this.config.appId)
         .setOAuthToken(this.accessToken)
+        .setOrigin(window.location.origin) // Explicitly set origin to avoid confusion
         .addView(view1)
         .addView(view2)
         .setCallback((data: any) => this.pickerCallback(data, resolve, reject));
+
+      console.log('Building Picker with:', {
+        appId: this.config.appId,
+        origin: window.location.origin,
+        hasAccessToken: !!this.accessToken
+      });
 
       if (options.multiple) {
         builder.enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED);
