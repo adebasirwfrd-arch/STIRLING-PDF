@@ -76,3 +76,4 @@ For adding translations, see the [Translation Guide](devGuide/HowToAddNewLanguag
 ## License
 
 Stirling PDF is open-core. See [LICENSE](LICENSE) for details.
+ 
