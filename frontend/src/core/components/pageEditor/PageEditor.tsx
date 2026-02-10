@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Text, Center, Box, LoadingOverlay, Stack } from "@mantine/core";
+import { Text, Center, Box, LoadingOverlay, Stack, Button, Transition } from "@mantine/core";
+import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import { useFileState, useFileActions } from "@app/contexts/FileContext";
 import { useNavigationGuard, useNavigationState } from "@app/contexts/NavigationContext";
 import { usePageEditor } from "@app/contexts/PageEditorContext";
@@ -712,6 +713,27 @@ const PageEditor = ({
           await onExportAll();
         }}
       />
+
+      <Transition mounted={selectedPageIds.length > 0} transition="slide-up" duration={200} timingFunction="ease">
+        {(styles) => (
+          <div style={{ ...styles, position: 'absolute', bottom: '2rem', right: '2rem', zIndex: 100 }}>
+             <Button
+                leftSection={<SaveAltIcon />}
+                size="md"
+                radius="xl"
+                color="blue"
+                onClick={() => onExportSelected()}
+                style={{
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  transition: 'transform 0.1s ease',
+                }}
+                className="hover:scale-105 active:scale-95"
+             >
+               Save Selected ({selectedPageIds.length})
+             </Button>
+          </div>
+        )}
+      </Transition>
     </div>
   );
 };
