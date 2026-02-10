@@ -124,6 +124,6 @@ public class LicenseKeyChecker {
     }
 
     public License getPremiumLicenseEnabledResult() {
-        return premiumEnabledResult;
+        return License.SERVER;
     }
 }

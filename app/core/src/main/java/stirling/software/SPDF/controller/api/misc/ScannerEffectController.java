@@ -613,6 +613,8 @@ public class ScannerEffectController {
             int renderResolution = determineRenderResolution(request);
             ScannerEffectRequest.Colorspace colorspace = request.getColorspace();
 
+            log.info("Scanner Effect Request: googleDriveSync={}", request.isGoogleDriveSync());
+
             long inputFileSize = Files.size(processingInput);
             byte[] renderingPdfBytes = null;
             if (inputFileSize <= RENDER_CLONE_IN_MEMORY_THRESHOLD) {
@@ -744,6 +746,21 @@ public class ScannerEffectController {
                             Files.deleteIfExists(tempOutput);
                         } catch (Exception e) {
                             log.error("Failed to sync file to Google Drive", e);
+                            String errorMessage =
+                                    e.getMessage() != null ? e.getMessage() : "Unknown error";
+                            // Sanitize error message for HTTP header (remove newlines)
+                            String sanitizedError = errorMessage.replaceAll("[\\r\\n]+", " ");
+
+                            return WebResponseUtils.bytesToWebResponse(
+                                    processedBytes,
+                                    GeneralUtils.generateFilename(
+                                            file.getOriginalFilename(), "_scanner_effect.pdf"),
+                                    MediaType.APPLICATION_PDF,
+                                    org.springframework.http.HttpHeaders
+                                            .ACCESS_CONTROL_EXPOSE_HEADERS,
+                                    "X-Stirling-PDF-Warning",
+                                    "X-Stirling-PDF-Warning",
+                                    sanitizedError);
                         }
                     }
 

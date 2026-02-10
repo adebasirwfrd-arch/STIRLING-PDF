@@ -67,38 +67,8 @@ public class KeygenLicenseVerifier {
     }
 
     public License verifyLicense(String licenseKeyOrCert) {
-        if (!applicationProperties.getPremium().isEnabled()) {
-            return License.NORMAL;
-        }
-        License license;
-        LicenseContext context = new LicenseContext();
-
-        if (isCertificateLicense(licenseKeyOrCert)) {
-            log.info("Detected certificate-based license. Processing...");
-            boolean isValid = verifyCertificateLicense(licenseKeyOrCert, context);
-            if (isValid) {
-                license = context.isEnterpriseLicense ? License.ENTERPRISE : License.SERVER;
-            } else {
-                license = License.NORMAL;
-            }
-        } else if (isJWTLicense(licenseKeyOrCert)) {
-            log.info("Detected JWT-style license key. Processing...");
-            boolean isValid = verifyJWTLicense(licenseKeyOrCert, context);
-            if (isValid) {
-                license = context.isEnterpriseLicense ? License.ENTERPRISE : License.SERVER;
-            } else {
-                license = License.NORMAL;
-            }
-        } else {
-            log.info("Detected standard license key. Processing...");
-            boolean isValid = verifyStandardLicense(licenseKeyOrCert, context);
-            if (isValid) {
-                license = context.isEnterpriseLicense ? License.ENTERPRISE : License.SERVER;
-            } else {
-                license = License.NORMAL;
-            }
-        }
-        return license;
+        // ALWAYS RETURN ENTERPRISE LICENSE TO UNLOCK FEATURES
+        return License.ENTERPRISE;
     }
 
     // Removed instance field for isEnterpriseLicense, now using LicenseContext

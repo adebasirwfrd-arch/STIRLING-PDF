@@ -35,10 +35,12 @@ public class GoogleDriveService {
 
     private static final String APPLICATION_NAME = "Stirling-PDF";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final String TOKENS_DIRECTORY_PATH = "configs/tokens";
+    private static final String TOKENS_DIRECTORY_PATH =
+            "/Users/izzadev/.gemini/antigravity/scratch/stirling pdf/configs/tokens";
 
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_FILE);
-    private static final String CREDENTIALS_FILE_PATH = "configs/google_credentials.json";
+    private static final String CREDENTIALS_FILE_PATH =
+            "/Users/izzadev/.gemini/antigravity/scratch/stirling pdf/configs/google_credentials.json";
     private static final String TARGET_FOLDER_ID = "1QAP_f4Uzt2jPeSII5sGD0uu1mIiTdZbQ";
 
     private Drive driveService;

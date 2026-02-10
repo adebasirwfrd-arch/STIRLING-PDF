@@ -43,7 +43,8 @@ public class WebResponseUtils {
     }
 
     public static ResponseEntity<byte[]> bytesToWebResponse(
-            byte[] bytes, String docName, MediaType mediaType) throws IOException {
+            byte[] bytes, String docName, MediaType mediaType, String... customHeaders)
+            throws IOException {
 
         // Return the PDF as a response
         HttpHeaders headers = new HttpHeaders();
@@ -55,7 +56,20 @@ public class WebResponseUtils {
                         .matcher(URLEncoder.encode(docName, StandardCharsets.UTF_8))
                         .replaceAll("%20");
         headers.setContentDispositionFormData("attachment", encodedDocName);
+
+        if (customHeaders != null && customHeaders.length > 0) {
+            for (int i = 0; i < customHeaders.length; i += 2) {
+                if (i + 1 < customHeaders.length) {
+                    headers.add(customHeaders[i], customHeaders[i + 1]);
+                }
+            }
+        }
         return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+    }
+
+    public static ResponseEntity<byte[]> bytesToWebResponse(
+            byte[] bytes, String docName, MediaType mediaType) throws IOException {
+        return bytesToWebResponse(bytes, docName, mediaType, (String[]) null);
     }
 
     public static ResponseEntity<byte[]> bytesToWebResponse(byte[] bytes, String docName)

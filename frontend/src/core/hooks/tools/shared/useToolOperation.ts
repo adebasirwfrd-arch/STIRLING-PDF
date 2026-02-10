@@ -239,9 +239,9 @@ export const useToolOperation = <TParams>(
     };
     window.addEventListener(FILE_EVENTS.markError, errorListener as EventListener);
 
-      try {
+    try {
       let processedFiles: File[];
-        let successSourceIds: FileId[] = [];
+      let successSourceIds: FileId[] = [];
 
       // Use original files directly (no PDF metadata injection - history stored in IndexedDB)
       const filesForAPI = extractFiles(validFiles);
@@ -278,12 +278,21 @@ export const useToolOperation = <TParams>(
 
           const response = await apiClient.post(endpoint, formData, { responseType: 'blob' });
 
+          // Check for custom warning header from backend (e.g. Google Drive sync failure)
+          const warningHeader = response.headers['x-stirling-pdf-warning'];
+          if (warningHeader) {
+            console.warn('[useToolOperation] Backend warning:', warningHeader);
+            // Use setError so the user sees the message, but keep processing the file result
+            // Prefix with "Warning: " to distinguish from fatal errors
+            actions.setError(`Warning: ${warningHeader}`);
+          }
+
           // Multi-file responses are typically ZIP files that need extraction, but some may return single PDFs
           if (config.responseHandler) {
             // Use custom responseHandler for multi-file (handles ZIP extraction)
             processedFiles = await config.responseHandler(response.data, filesForAPI);
           } else if (response.data.type === 'application/pdf' ||
-                    (response.headers && response.headers['content-type'] === 'application/pdf')) {
+            (response.headers && response.headers['content-type'] === 'application/pdf')) {
             // Single PDF response (e.g. split with merge option) - add prefix to first original filename
             const filename = `${config.filePrefix}${filesForAPI[0]?.name || 'document.pdf'}`;
             const singleFile = new File([response.data], filename, { type: 'application/pdf' });

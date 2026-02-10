@@ -21,7 +21,7 @@ export const buildScannerEffectFormData = (parameters: ScannerEffectParameters, 
 };
 
 export const scannerEffectOperationConfig = {
-    endpoint: 'misc/scanner-effect',
+    endpoint: '/api/v1/misc/scanner-effect',
     method: 'POST',
     toolType: ToolType.singleFile,
     operationType: 'scannerEffect' as ToolId,
