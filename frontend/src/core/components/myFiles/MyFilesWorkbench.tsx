@@ -59,6 +59,92 @@ const EffectsModal = ({ opened, onClose, files, onApply }: EffectsModalProps) =>
   );
 };
 
+// --- File Preview Modal Component ---
+interface FilePreviewModalProps {
+  opened: boolean;
+  onClose: () => void;
+  file: StirlingFileStub;
+  onPrev: () => void;
+  onNext: () => void;
+  actions: {
+    onEffects: () => void;
+    onShare: () => void;
+    onPrint: () => void;
+    onDelete: () => void;
+  };
+}
+
+const FilePreviewModal = ({ opened, onClose, file, onPrev, onNext, actions }: FilePreviewModalProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <Modal opened={opened} onClose={onClose} fullScreen padding={0} withCloseButton={false} styles={{ content: { background: 'black' } }}>
+      <Box h="100vh" style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* Header */}
+        <Group justify="space-between" p="md" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 100 }}>
+          <Group>
+            <ActionIcon variant="transparent" color="white" onClick={onClose}>
+              <LocalIcon icon="close" />
+            </ActionIcon>
+            <Text color="white" fw={500}>{file.name}</Text>
+          </Group>
+          <Group>
+            <Tooltip label={t('myFiles.effects', 'Effects')}>
+              <ActionIcon variant="light" color="indigo" size="lg" onClick={actions.onEffects}>
+                <LocalIcon icon="auto-fix-high" />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label={t('myFiles.share', 'Share')}>
+              <ActionIcon variant="light" color="teal" size="lg" onClick={actions.onShare}>
+                <LocalIcon icon="share-rounded" />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label={t('myFiles.print', 'Print')}>
+              <ActionIcon variant="light" color="gray" size="lg" onClick={actions.onPrint}>
+                <LocalIcon icon="print" />
+              </ActionIcon>
+            </Tooltip>
+            <ActionIcon variant="light" color="red" size="lg" onClick={actions.onDelete}>
+              <LocalIcon icon="delete" />
+            </ActionIcon>
+          </Group>
+        </Group>
+
+        {/* Content */}
+        <Box style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ActionIcon 
+            variant="transparent" 
+            color="white" 
+            size="xl" 
+            onClick={onPrev} 
+            style={{ position: 'absolute', left: 20, zIndex: 10, background: 'rgba(0,0,0,0.3)', borderRadius: '50%' }}
+          >
+            <LocalIcon icon="chevron-left" />
+          </ActionIcon>
+
+          <Image 
+            src={file.thumbnailUrl} 
+            fit="contain" 
+            h="85vh" 
+            alt={file.name} 
+            draggable={false}
+          />
+
+          <ActionIcon 
+            variant="transparent" 
+            color="white" 
+            size="xl" 
+            onClick={onNext} 
+            style={{ position: 'absolute', right: 20, zIndex: 10, background: 'rgba(0,0,0,0.3)', borderRadius: '50%' }}
+          >
+            <LocalIcon icon="chevron-right" />
+          </ActionIcon>
+        </Box>
+      </Box>
+    </Modal>
+  );
+};
+
 export default function MyFilesWorkbench() {
   const { t } = useTranslation();
   const fileStorage = useFileStorage();
@@ -70,6 +156,10 @@ export default function MyFilesWorkbench() {
   const [loading, setLoading] = useState(true);
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const [selectedFileIds, setSelectedFileIds] = useState<Set<FileId>>(new Set());
+
+  // Preview state
+  const [previewOpened, setPreviewOpened] = useState(false);
+  const [previewFileIndex, setPreviewFileIndex] = useState<number | null>(null);
 
   // Modals state
   const [effectsOpened, setEffectsOpened] = useState(false);
@@ -255,6 +345,28 @@ export default function MyFilesWorkbench() {
     await loadScans();
   };
 
+  const handlePrevPreview = () => {
+    if (previewFileIndex !== null && previewFileIndex > 0) {
+      setPreviewFileIndex(previewFileIndex - 1);
+    }
+  };
+
+  const handleNextPreview = () => {
+    if (previewFileIndex !== null && previewFileIndex < currentFolderFiles.length - 1) {
+      setPreviewFileIndex(previewFileIndex + 1);
+    }
+  };
+
+  const openPreview = (id: FileId) => {
+    const index = currentFolderFiles.findIndex(f => f.id === id);
+    if (index !== -1) {
+      setPreviewFileIndex(index);
+      setPreviewOpened(true);
+    }
+  };
+
+  const previewFile = previewFileIndex !== null ? currentFolderFiles[previewFileIndex] : null;
+
   if (loading) {
     return (
       <Box h="100%" p="xl" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -390,7 +502,7 @@ export default function MyFilesWorkbench() {
                       onChange={() => toggleSelection(file.id)}
                     />
                   </Box>
-                  <Card.Section onClick={() => toggleSelection(file.id)} style={{ cursor: 'pointer' }}>
+                  <Card.Section onClick={() => openPreview(file.id)} style={{ cursor: 'pointer' }}>
                     <Image
                       src={file.thumbnailUrl}
                       height={180}
@@ -400,7 +512,7 @@ export default function MyFilesWorkbench() {
                       style={{ padding: '4px' }}
                     />
                   </Card.Section>
-                  <Box p="xs">
+                  <Box p="xs" onClick={() => openPreview(file.id)} style={{ cursor: 'pointer' }}>
                     <Text size="xs" mt="xs" truncate fw={500}>{file.name}</Text>
                     <Text size="xs" color="dimmed">
                       {(file.size / 1024).toFixed(1)} KB
@@ -448,6 +560,22 @@ export default function MyFilesWorkbench() {
           </Button>
         </Stack>
       </Modal>
+
+      {previewFile && (
+        <FilePreviewModal
+          opened={previewOpened}
+          onClose={() => setPreviewOpened(false)}
+          file={previewFile}
+          onPrev={handlePrevPreview}
+          onNext={handleNextPreview}
+          actions={{
+            onEffects: () => { setPreviewOpened(false); setSelectedFileIds(new Set([previewFile.id])); setEffectsOpened(true); },
+            onShare: handleShare,
+            onPrint: handlePrint,
+            onDelete: handleDelete
+          }}
+        />
+      )}
     </Box>
   );
 }
