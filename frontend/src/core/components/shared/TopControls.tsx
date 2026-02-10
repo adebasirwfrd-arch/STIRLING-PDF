@@ -7,6 +7,7 @@ import GridViewIcon from "@mui/icons-material/GridView";
 import FolderIcon from "@mui/icons-material/Folder";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import { WorkbenchType, isValidWorkbench } from '@app/types/workbench';
+import { FileId } from '@app/types/fileContext';
 import { PageEditorFileDropdown } from '@app/components/shared/PageEditorFileDropdown';
 import type { CustomWorkbenchViewInstance } from '@app/contexts/ToolWorkflowContext';
 import { FileDropdownMenu } from '@app/components/shared/FileDropdownMenu';
@@ -16,6 +17,7 @@ import { usePageEditorDropdownState, PageEditorDropdownState } from '@app/compon
 import { useFileHandler } from '@app/hooks/useFileHandler';
 import { useToolWorkflow } from '@app/contexts/ToolWorkflowContext';
 import { FileMenu } from './FileMenu';
+import { printPdf } from '@app/utils/printUtils';
 
 const viewOptionStyle: React.CSSProperties = {
   display: 'inline-flex',
@@ -148,18 +150,49 @@ const TopControls = ({
 }: TopControlsProps) => {
   const { isRainbowMode } = useRainbowThemeContext();
   const [switchingTo, setSwitchingTo] = useState<WorkbenchType | null>(null);
-  const { downloadFile } = useFileHandler();
+  const { downloadFile, getFile } = useFileHandler();
+  // Fixed usage of useToolWorkflow
   const { setPreviewFile, handleToolSelect } = useToolWorkflow();
 
   const handleSave = useCallback(() => {
     if (activeFiles[currentFileIndex]) {
-      downloadFile(activeFiles[currentFileIndex].fileId);
+      downloadFile(activeFiles[currentFileIndex].fileId as FileId);
     }
   }, [activeFiles, currentFileIndex, downloadFile]);
 
+  const handleSaveAs = useCallback(async () => {
+    if (!activeFiles[currentFileIndex]) return;
+    const fileId = activeFiles[currentFileIndex].fileId as FileId;
+    const file = getFile(fileId);
+    
+    if (file && 'showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: file.name,
+          types: [{
+            description: 'PDF File',
+            accept: { 'application/pdf': ['.pdf'] },
+          }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(file);
+        await writable.close();
+      } catch (err) {
+        // Fallback to regular download if cancelled or failed
+      }
+    } else {
+      downloadFile(fileId);
+    }
+  }, [activeFiles, currentFileIndex, downloadFile, getFile]);
+
   const handlePrint = useCallback(() => {
-    window.print();
-  }, []);
+    if (activeFiles[currentFileIndex]) {
+       const file = getFile(activeFiles[currentFileIndex].fileId as FileId);
+       if (file) {
+         printPdf(file);
+       }
+    }
+  }, [activeFiles, currentFileIndex, getFile]);
 
   const handleClose = useCallback(() => {
       setPreviewFile(null);
@@ -206,6 +239,7 @@ const TopControls = ({
       <div className="absolute left-4 top-0 h-[1.8rem] z-[101] pointer-events-auto">
         <FileMenu 
           onSave={handleSave}
+          onSaveAs={handleSaveAs}
           onPrint={handlePrint}
           onClose={handleClose}
           disabled={activeFiles.length === 0}

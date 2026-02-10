@@ -378,7 +378,20 @@ function FileContextInner({
     cleanupFile: (fileId: FileId) => lifecycleManager.cleanupFile(fileId, stateRef),
     scheduleCleanup: (fileId: FileId, delay?: number) =>
       lifecycleManager.scheduleCleanup(fileId, delay, stateRef),
-    openEncryptedUnlockPrompt: promptEncryptedUnlock
+    openEncryptedUnlockPrompt: promptEncryptedUnlock,
+    downloadFile: (fileId: FileId) => {
+      const file = filesRef.current.get(fileId);
+      if (file) {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    }
   }), [
     baseActions,
     addRawFiles,
