@@ -1,0 +1,230 @@
+data: {"data":"===== Application Startup at 2026-02-10 17:09:53 =====\n","timestamp":"2026-02-10T17:09:53Z"}
+
+data: {"data":"===================================","timestamp":"2026-02-10T17:10:21.347Z"}
+
+data: {"data":"Stirling-PDF Unified Container","timestamp":"2026-02-10T17:10:21.347Z"}
+
+data: {"data":"MODE: BACKEND","timestamp":"2026-02-10T17:10:21.347Z"}
+
+data: {"data":"===================================","timestamp":"2026-02-10T17:10:21.347Z"}
+
+data: {"data":"Setting up OCR languages...","timestamp":"2026-02-10T17:10:21.348Z"}
+
+data: {"data":"Using TESSDATA_PREFIX=/usr/share/tessdata","timestamp":"2026-02-10T17:10:21.349Z"}
+
+data: {"data":"Setting up user permissions...","timestamp":"2026-02-10T17:10:21.349Z"}
+
+data: {"data":"[WARN] Some chown operations failed, may run as host user","timestamp":"2026-02-10T17:10:22.020Z"}
+
+data: {"data":"Starting in BACKEND mode: Backend only on port 7860","timestamp":"2026-02-10T17:10:22.022Z"}
+
+data: {"data":"Starting backend on port 7860...","timestamp":"2026-02-10T17:10:22.022Z"}
+
+data: {"data":"Starting unoserver on 127.0.0.1:2003 (uno-port 2004)","timestamp":"2026-02-10T17:10:22.024Z"}
+
+data: {"data":"===================================","timestamp":"2026-02-10T17:10:22.025Z"}
+
+data: {"data":"✓ Backend API available at: http://localhost:7860/api","timestamp":"2026-02-10T17:10:22.025Z"}
+
+data: {"data":"✓ Swagger UI at: http://localhost:7860/swagger-ui/index.html","timestamp":"2026-02-10T17:10:22.025Z"}
+
+data: {"data":"===================================","timestamp":"2026-02-10T17:10:22.025Z"}
+
+data: {"data":"Picked up JAVA_TOOL_OPTIONS:  ","timestamp":"2026-02-10T17:10:22.029Z"}
+
+data: {"data":"Traceback (most recent call last):","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"  File \"/opt/venv/lib/python3.12/site-packages/unoserver/converter.py\", line 2, in <module>","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"    import uno","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"ModuleNotFoundError: No module named 'uno'","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"During handling of the above exception, another exception occurred:","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"Traceback (most recent call last):","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"  File \"/opt/venv/bin/unoserver\", line 3, in <module>","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"    from unoserver.server import main","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"  File \"/opt/venv/lib/python3.12/site-packages/unoserver/server.py\", line 21, in <module>","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"    from unoserver import converter, comparer","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"  File \"/opt/venv/lib/python3.12/site-packages/unoserver/converter.py\", line 4, in <module>","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"    raise ImportError(","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"ImportError: Could not find the 'uno' library. This package must be installed with a Python installation that has a 'uno' library. This typically means you should install it with the same Python executable as your Libreoffice installation uses.","timestamp":"2026-02-10T17:10:22.190Z"}
+
+data: {"data":"17:10:23.352 [main] INFO  s.software.SPDF.SPDFApplication - Additional features in jar","timestamp":"2026-02-10T17:10:23.353Z"}
+
+data: {"data":"17:10:23.354 [main] INFO  s.s.c.c.ConfigInitializer - Current settings file line count: 0","timestamp":"2026-02-10T17:10:23.357Z"}
+
+data: {"data":"17:10:23.360 [main] INFO  s.s.c.c.ConfigInitializer - Created settings file from template","timestamp":"2026-02-10T17:10:23.361Z"}
+
+data: {"data":"17:10:23.361 [main] INFO  s.s.c.c.ConfigInitializer - Created custom_settings file: ./configs/custom_settings.yml","timestamp":"2026-02-10T17:10:23.361Z"}
+
+data: {"data":"17:10:23.361 [main] INFO  s.software.SPDF.SPDFApplication - Settings file: ./configs/settings.yml","timestamp":"2026-02-10T17:10:23.361Z"}
+
+data: {"data":"17:10:23.362 [main] INFO  s.software.SPDF.SPDFApplication - Custom settings file: ./configs/custom_settings.yml","timestamp":"2026-02-10T17:10:23.362Z"}
+
+data: {"data":" ____ _____ ___ ____  _     ___ _   _  ____       ____  ____  _____","timestamp":"2026-02-10T17:10:24.085Z"}
+
+data: {"data":"/ ___|_   _|_ _|  _ \\| |   |_ _| \\ | |/ ___|     |  _ \\|  _ \\|  ___|","timestamp":"2026-02-10T17:10:24.085Z"}
+
+data: {"data":"\\___ \\ | |  | || |_) | |    | ||  \\| | |  _ _____| |_) | | | | |_","timestamp":"2026-02-10T17:10:24.085Z"}
+
+data: {"data":" ___) || |  | ||  _ <| |___ | || |\\  | |_| |_____|  __/| |_| |  _|","timestamp":"2026-02-10T17:10:24.085Z"}
+
+data: {"data":"|____/ |_| |___|_| \\_\\_____|___|_| \\_|\\____|     |_|   |____/|_|","timestamp":"2026-02-10T17:10:24.085Z"}
+
+data: {"data":"Powered by Spring Boot 3.5.9","timestamp":"2026-02-10T17:10:24.085Z"}
+
+data: {"data":"17:10:24.273 [main] INFO  s.software.SPDF.SPDFApplication - Starting SPDFApplication v2.4.5 using Java 21.0.10 with PID 23 (/app.jar started by stirlingpdfuser in /)","timestamp":"2026-02-10T17:10:24.273Z"}
+
+data: {"data":"17:10:24.274 [main] INFO  s.software.SPDF.SPDFApplication - The following 1 profile is active: \"security\"","timestamp":"2026-02-10T17:10:24.274Z"}
+
+data: {"data":"17:10:29.065 [main] INFO  s.s.S.config.MultipartConfiguration - Using default multipart file upload limit: 2000MB","timestamp":"2026-02-10T17:10:29.065Z"}
+
+data: {"data":"17:10:30.248 [main] INFO  s.s.p.s.configuration.DatabaseConfig - Using default H2 database","timestamp":"2026-02-10T17:10:30.249Z"}
+
+data: {"data":"17:10:37.645 [main] INFO  s.s.p.s.service.DatabaseService - Source directory does not exist: configs/db/backup","timestamp":"2026-02-10T17:10:37.645Z"}
+
+data: {"data":"17:10:37.870 [main] INFO  s.s.c.config.TempFileConfiguration - Created temporary directory: /tmp/stirling-pdf/stirling-pdf","timestamp":"2026-02-10T17:10:37.870Z"}
+
+data: {"data":"17:10:37.908 [main] INFO  s.s.c.c.RuntimePathConfig - Registered watched folder path: /pipeline/watchedFolders","timestamp":"2026-02-10T17:10:37.908Z"}
+
+data: {"data":"17:10:37.908 [main] INFO  s.s.c.c.RuntimePathConfig - Using Tesseract data path: /usr/share/tessdata","timestamp":"2026-02-10T17:10:37.908Z"}
+
+data: {"data":"17:10:37.939 [pool-2-thread-1] WARN  s.s.SPDF.config.ExternalAppDepConfig - Missing dependency: rar - Disabling group: rar (Affected features: PDF To Cbr)","timestamp":"2026-02-10T17:10:37.939Z"}
+
+data: {"data":"17:10:37.941 [pool-2-thread-1] WARN  s.s.SPDF.config.ExternalAppDepConfig - Missing dependency: weasyprint - Disabling group: Weasyprint (Affected features: Eml To PDF, Markdown To PDF, Url To PDF, Html To PDF)","timestamp":"2026-02-10T17:10:37.941Z"}
+
+data: {"data":"17:10:37.945 [pool-2-thread-1] WARN  s.s.SPDF.config.ExternalAppDepConfig - Missing dependency: ffmpeg - Disabling group: FFmpeg (Affected features: unknown)","timestamp":"2026-02-10T17:10:37.945Z"}
+
+data: {"data":"17:10:37.945 [pool-2-thread-2] INFO  s.s.SPDF.config.ExternalAppDepConfig - qpdf 12.2.0 meets minimum 12.0.0","timestamp":"2026-02-10T17:10:37.948Z"}
+
+data: {"data":"17:10:37.950 [pool-2-thread-1] WARN  s.s.SPDF.config.ExternalAppDepConfig - Missing dependency: unoconvert - Disabling group: Unoconvert (Affected features: File To PDF)","timestamp":"2026-02-10T17:10:37.950Z"}
+
+data: {"data":"17:10:37.950 [pool-2-thread-2] WARN  s.s.SPDF.config.ExternalAppDepConfig - Missing dependency: ebook-convert - Disabling group: Calibre (Affected features: PDF To Epub)","timestamp":"2026-02-10T17:10:37.950Z"}
+
+data: {"data":"17:10:38.261 [main] INFO  s.s.S.config.EndpointConfiguration - Disabled tool groups: Calibre, FFmpeg, Unoconvert, Weasyprint, rar (endpoints may have alternative implementations)","timestamp":"2026-02-10T17:10:38.262Z"}
+
+data: {"data":"17:10:38.262 [main] INFO  s.s.S.config.EndpointConfiguration - Total disabled endpoints: 5. Disabled endpoints: eml-to-pdf, html-to-pdf, pdf-to-cbr, pdf-to-epub, url-to-pdf","timestamp":"2026-02-10T17:10:38.262Z"}
+
+data: {"data":"17:10:38.976 [main] INFO  s.s.SPDF.service.VeraPDFService - VeraPDF Greenfield initialized successfully","timestamp":"2026-02-10T17:10:38.976Z"}
+
+data: {"data":"17:10:39.044 [main] INFO  s.s.S.s.PdfJsonFallbackFontService - Using fallback font location: classpath:/static/fonts/NotoSans-Regular.ttf","timestamp":"2026-02-10T17:10:39.044Z"}
+
+data: {"data":"17:10:39.049 [main] INFO  s.s.S.s.pdfjson.PdfJsonFontService - [FONT-DEBUG] CFF conversion enabled, checking tool availability...","timestamp":"2026-02-10T17:10:39.049Z"}
+
+data: {"data":"17:10:39.050 [main] INFO  s.s.S.s.pdfjson.PdfJsonFontService - [FONT-DEBUG] Python command '/opt/venv/bin/python3' is available","timestamp":"2026-02-10T17:10:39.051Z"}
+
+data: {"data":"17:10:39.052 [main] WARN  s.s.S.s.pdfjson.PdfJsonFontService - [FONT-DEBUG] FontForge command 'fontforge' not found; FontForge CFF conversion disabled","timestamp":"2026-02-10T17:10:39.052Z"}
+
+data: {"data":"17:10:39.052 [main] INFO  s.s.S.s.pdfjson.PdfJsonFontService - [FONT-DEBUG] Selected CFF converter method: python","timestamp":"2026-02-10T17:10:39.052Z"}
+
+data: {"data":"17:10:40.108 [main] INFO  s.s.S.s.p.t.library.Type3FontLibrary - [TYPE3] Loaded 61 Type3 library entries (signatures=81, aliases=64) from classpath:/type3/library/index.json","timestamp":"2026-02-10T17:10:40.108Z"}
+
+data: {"data":"17:10:40.135 [main] INFO  s.s.S.s.PdfJsonConversionService - PDF JSON cache budget configured: 858993459 bytes (source: max-percent)","timestamp":"2026-02-10T17:10:40.135Z"}
+
+data: {"data":"17:10:41.104 [main] INFO  s.s.c.service.MobileScannerService - Mobile scanner temp directory: /tmp/stirling-pdf/stirling-mobile-scanner","timestamp":"2026-02-10T17:10:41.104Z"}
+
+data: {"data":"17:10:41.181 [main] INFO  s.s.SPDF.service.GoogleDriveService - GoogleDriveService initialized using Service Account.","timestamp":"2026-02-10T17:10:41.182Z"}
+
+data: {"data":"17:10:41.193 [main] ERROR nu.pattern.OpenCV - OpenCV.loadShared() is not supported in Java >= 12. Falling back to OpenCV.loadLocally().","timestamp":"2026-02-10T17:10:41.194Z"}
+
+data: {"data":"17:10:41.650 [main] INFO  s.s.S.s.PerspectiveCorrectionService - OpenCV loaded successfully.","timestamp":"2026-02-10T17:10:41.650Z"}
+
+data: {"data":"17:10:41.870 [main] INFO  s.software.common.util.FileMonitor - Monitoring directory: /pipeline/watchedFolders","timestamp":"2026-02-10T17:10:41.871Z"}
+
+data: {"data":"17:10:41.962 [main] INFO  s.s.S.s.CertificateValidationService - Loading certificates from Java system trust store","timestamp":"2026-02-10T17:10:41.962Z"}
+
+data: {"data":"17:10:42.000 [main] INFO  s.s.S.s.CertificateValidationService - Loaded 146 CA certificates from Java system trust store","timestamp":"2026-02-10T17:10:42Z"}
+
+data: {"data":"17:10:42.000 [main] INFO  s.s.S.s.CertificateValidationService - Loading bundled Mozilla CA certificates from resources","timestamp":"2026-02-10T17:10:42Z"}
+
+data: {"data":"17:10:42.001 [main] WARN  s.s.S.s.CertificateValidationService - Bundled Mozilla CA certificate file not found in resources","timestamp":"2026-02-10T17:10:42.001Z"}
+
+data: {"data":"17:10:42.068 [main] INFO  s.s.S.c.web.ReactRoutingController - Static files custom path: ./customFiles/static/","timestamp":"2026-02-10T17:10:42.068Z"}
+
+data: {"data":"17:10:42.146 [pool-4-thread-1] INFO  s.s.common.service.ResourceMonitor - System resource status changed from OK to CRITICAL","timestamp":"2026-02-10T17:10:42.147Z"}
+
+data: {"data":"17:10:42.147 [pool-4-thread-1] INFO  s.s.common.service.ResourceMonitor - Current metrics - CPU: 466.1%, Memory: 12.2%, Free Memory: 174 MB","timestamp":"2026-02-10T17:10:42.148Z"}
+
+data: {"data":"17:10:42.181 [main] INFO  s.s.c.service.TempFileCleanupService - Created LibreOffice temp directory: /tmp/stirling-pdf/stirling-pdf/libreoffice","timestamp":"2026-02-10T17:10:42.181Z"}
+
+data: {"data":"17:10:42.182 [main] INFO  s.s.c.service.TempFileCleanupService - Running in Kubernetes mode, using aggressive cleanup strategy","timestamp":"2026-02-10T17:10:42.182Z"}
+
+data: {"data":"17:10:42.184 [main] INFO  s.s.c.service.TempFileCleanupService - Startup cleanup complete. Deleted 0 temporary files/directories","timestamp":"2026-02-10T17:10:42.184Z"}
+
+data: {"data":"17:10:43.040 [main] INFO  s.s.p.security.service.UserService - MFA required set to true for user admin {mfaEnabled=false, mfaRequired=false}","timestamp":"2026-02-10T17:10:43.041Z"}
+
+data: {"data":"17:10:43.066 [main] INFO  s.s.p.s.service.DatabaseService - Database export completed: configs/backup/db/backup_202602101710.sql","timestamp":"2026-02-10T17:10:43.066Z"}
+
+data: {"data":"17:10:43.067 [main] INFO  s.s.p.s.service.DatabaseService - Checksum for backup_202602101710.sql: b9e4fea2536f3676e32ef765f00a7c892281a0cb3c3fa7c7f7e50ebeb1d50fcc","timestamp":"2026-02-10T17:10:43.067Z"}
+
+data: {"data":"17:10:43.086 [main] INFO  s.s.p.security.InitialSecuritySetup - Default admin user created: admin","timestamp":"2026-02-10T17:10:43.087Z"}
+
+data: {"data":"17:10:43.179 [main] INFO  s.s.p.security.service.UserService - MFA required set to true for user STIRLING-PDF-BACKEND-API-USER {mfaEnabled=false, mfaRequired=false}","timestamp":"2026-02-10T17:10:43.180Z"}
+
+data: {"data":"17:10:43.186 [main] INFO  s.s.p.s.service.DatabaseService - Database export completed: configs/backup/db/backup_202602101710.sql","timestamp":"2026-02-10T17:10:43.186Z"}
+
+data: {"data":"17:10:43.187 [main] INFO  s.s.p.s.service.DatabaseService - Checksum for backup_202602101710.sql: ff054c52442fc3e631dc1219a563e2aef3d6e8828443b799c94fb227f11285fd","timestamp":"2026-02-10T17:10:43.187Z"}
+
+data: {"data":"17:10:43.245 [main] INFO  s.s.p.s.service.DatabaseService - Database export completed: configs/backup/db/backup_202602101710.sql","timestamp":"2026-02-10T17:10:43.245Z"}
+
+data: {"data":"17:10:43.246 [main] INFO  s.s.p.s.service.DatabaseService - Checksum for backup_202602101710.sql: 0e40f679e0effc78bab3132cd1002719091e4d28fe86e567bab61053cc636fcf","timestamp":"2026-02-10T17:10:43.246Z"}
+
+data: {"data":"17:10:43.258 [main] INFO  s.s.p.security.InitialSecuritySetup - Internal API user created: STIRLING-PDF-BACKEND-API-USER","timestamp":"2026-02-10T17:10:43.258Z"}
+
+data: {"data":"17:10:43.263 [main] INFO  s.s.p.s.UserLicenseSettingsService - Initializing user license settings","timestamp":"2026-02-10T17:10:43.263Z"}
+
+data: {"data":"17:10:43.275 [main] INFO  s.s.p.s.UserLicenseSettingsService - Existing installation detected. Grandfathering 5 users (current: 1, minimum: 5)","timestamp":"2026-02-10T17:10:43.276Z"}
+
+data: {"data":"17:10:43.278 [main] WARN  s.s.p.s.UserLicenseSettingsService - GRANDFATHERING LOCKED: 5 users. This value can never be changed.","timestamp":"2026-02-10T17:10:43.279Z"}
+
+data: {"data":"17:10:43.283 [main] INFO  s.s.p.s.UserLicenseSettingsService - License check result: type=SERVER, requiresPaid=true, hasPaid=true","timestamp":"2026-02-10T17:10:43.283Z"}
+
+data: {"data":"17:10:43.857 [main] INFO  s.software.SPDF.config.WebMvcConfig - No CORS allowed origins configured in settings.yml (system.corsAllowedOrigins); allowing all origins.","timestamp":"2026-02-10T17:10:43.857Z"}
+
+data: {"data":"17:10:44.627 [main] INFO  s.s.p.s.c.SecurityConfiguration - No CORS allowed origins configured in settings.yml (system.corsAllowedOrigins); allowing all origins.","timestamp":"2026-02-10T17:10:44.627Z"}
+
+data: {"data":"17:10:45.953 [main] INFO  s.software.common.service.JobQueue - Starting JobQueue lifecycle","timestamp":"2026-02-10T17:10:45.953Z"}
+
+data: {"data":"17:10:46.049 [main] INFO  s.software.SPDF.SPDFApplication - Stirling-PDF running on port: 7860","timestamp":"2026-02-10T17:10:46.050Z"}
+
+data: {"data":"17:10:46.076 [main] INFO  s.software.SPDF.SPDFApplication - Started SPDFApplication in 22.711 seconds (process running for 24.046)","timestamp":"2026-02-10T17:10:46.076Z"}
+
+data: {"data":"17:10:46.083 [scheduling-1] WARN  s.software.common.util.FileMonitor - Not monitoring any directories; attempting to re-register root paths.","timestamp":"2026-02-10T17:10:46.083Z"}
+
+data: {"data":"17:10:46.084 [scheduling-1] INFO  s.s.S.c.a.p.PipelineDirectoryProcessor - Created directory: /pipeline/watchedFolders","timestamp":"2026-02-10T17:10:46.084Z"}
+
+data: {"data":"17:10:46.088 [scheduling-1] INFO  s.s.c.service.TempFileCleanupService - Running scheduled temporary file cleanup","timestamp":"2026-02-10T17:10:46.093Z"}
+
+data: {"data":"17:10:46.088 [main] WARN  o.s.c.events.SpringDocAppInitializer - SpringDoc /v1/api-docs endpoint is enabled by default. To disable it in production, set the property 'springdoc.api-docs.enabled=false'","timestamp":"2026-02-10T17:10:46.093Z"}
+
+data: {"data":"17:10:46.089 [main] WARN  o.s.c.events.SpringDocAppInitializer - SpringDoc /swagger-ui.html endpoint is enabled by default. To disable it in production, set the property 'springdoc.swagger-ui.enabled=false'","timestamp":"2026-02-10T17:10:46.093Z"}
+
+data: {"data":"17:10:46.129 [scheduling-1] INFO  s.s.common.util.TempFileManager - Cleaned up 0 old temporary files","timestamp":"2026-02-10T17:10:46.129Z"}
+
+data: {"data":"17:10:46.129 [scheduling-1] INFO  s.s.c.service.TempFileCleanupService - Cleaned up 0 registered temporary files","timestamp":"2026-02-10T17:10:46.130Z"}
+
+data: {"data":"17:10:46.643 [main] INFO  s.s.p.s.ServerCertificateService - Generated new server certificate at: ./configs/server-certificate.p12","timestamp":"2026-02-10T17:10:46.643Z"}
+
+data: {"data":"17:10:46.647 [main] INFO  s.s.p.s.UserLicenseSettingsService - License check result: type=SERVER, requiresPaid=true, hasPaid=true","timestamp":"2026-02-10T17:10:46.647Z"}
+
+data: {"data":"17:10:46.649 [main] INFO  s.software.SPDF.SPDFApplication - Stirling-PDF Started.","timestamp":"2026-02-10T17:10:46.649Z"}
+
+data: {"data":"17:10:46.649 [main] INFO  s.software.SPDF.SPDFApplication - Navigate to http://localhost:7860/","timestamp":"2026-02-10T17:10:46.649Z"}
+
+data: {"data":"17:10:51.071 [scheduling-1] WARN  s.software.common.util.FileMonitor - Not monitoring any directories; attempting to re-register root paths.","timestamp":"2026-02-10T17:10:51.072Z"}
+
+data: {"data":"17:10:51.073 [scheduling-1] INFO  s.software.common.util.FileMonitor - Registered directory: /pipeline/watchedFolders","timestamp":"2026-02-10T17:10:51.073Z"}
+

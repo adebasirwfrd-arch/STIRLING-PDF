@@ -1,0 +1,6 @@
+data: {"data":"16:14:04.620 [main] INFO  s.s.SPDF.service.GoogleDriveService - GoogleDriveService initialized using Service Account.","timestamp":"2026-02-10T16:14:04.621Z"}
+
+data: {"data":"16:14:04.636 [main] ERROR nu.pattern.OpenCV - OpenCV.loadShared() is not supported in Java >= 12. Falling back to OpenCV.loadLocally().","timestamp":"2026-02-10T16:14:04.637Z"}
+
+data: {"data":"16:14:05.146 [main] INFO  s.s.S.s.PerspectiveCorrectionService - OpenCV loaded successfully.","timestamp":"2026-02-10T16:14:05.146Z"}
+
