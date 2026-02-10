@@ -6,7 +6,9 @@
 import { loadScript } from '@app/utils/scriptLoader';
 
 const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
-const SESSION_STORAGE_ID = 'googleDrivePickerAccessToken';
+const ACCESS_TOKEN_KEY = 'googleDrivePickerAccessToken';
+const TOKEN_EXPIRY_KEY = 'googleDrivePickerTokenExpiry';
+const EXPIRY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minute buffer
 
 interface GoogleDriveConfig {
   clientId: string;
@@ -57,7 +59,20 @@ class GoogleDrivePickerService {
   private gisLoaded = false;
 
   constructor() {
-    this.accessToken = localStorage.getItem(SESSION_STORAGE_ID);
+    this.accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+  }
+
+  /**
+   * Check if the current token is valid (including a buffer)
+   */
+  private isTokenValid(): boolean {
+    if (!this.accessToken) return false;
+
+    const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+    if (!expiry) return false;
+
+    const expiryTime = parseInt(expiry, 10);
+    return Date.now() + EXPIRY_THRESHOLD_MS < expiryTime;
   }
 
   /**
@@ -130,8 +145,10 @@ class GoogleDrivePickerService {
       throw new Error('Google Drive service not initialized');
     }
 
-    // Always request access token to ensure it's fresh and valid
-    await this.requestAccessToken();
+    // Refresh token if missing or expired
+    if (!this.isTokenValid()) {
+      await this.requestAccessToken();
+    }
 
     // Create and show picker
     return this.createPicker(options);
@@ -157,12 +174,15 @@ class GoogleDrivePickerService {
         }
 
         this.accessToken = response.access_token;
-        localStorage.setItem(SESSION_STORAGE_ID, this.accessToken ?? "");
+        const expiresAt = Date.now() + (response.expires_in * 1000);
+
+        localStorage.setItem(ACCESS_TOKEN_KEY, this.accessToken ?? "");
+        localStorage.setItem(TOKEN_EXPIRY_KEY, expiresAt.toString());
+
         resolve();
       };
 
-      // prompt: '' is the standard way to get a token seamlessly if already authorized
-      // If the user wants to avoid the consent screen, we don't force 'consent'
+      // prompt: '' allows silent refresh if possible
       this.tokenClient.requestAccessToken({
         prompt: '',
       });
@@ -255,7 +275,8 @@ class GoogleDrivePickerService {
    */
   signOut(): void {
     if (this.accessToken) {
-      sessionStorage.removeItem(SESSION_STORAGE_ID);
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(TOKEN_EXPIRY_KEY);
       window.google?.accounts.oauth2.revoke(this.accessToken, () => { });
       this.accessToken = null;
     }
