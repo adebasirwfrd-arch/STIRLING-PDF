@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Stirling PDF</string>
+    <string name="title_activity_main">Stirling PDF</string>
+    <string name="package_name">com.stirling.pdf</string>
+    <string name="custom_url_scheme">com.stirling.pdf</string>
+</resources>

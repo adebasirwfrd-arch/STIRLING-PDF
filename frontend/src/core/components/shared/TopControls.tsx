@@ -246,7 +246,7 @@ const TopControls = ({
         />
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center px-4 max-w-full overflow-x-auto no-scrollbar">
 
         <SegmentedControl
           data-tour="view-switcher"
