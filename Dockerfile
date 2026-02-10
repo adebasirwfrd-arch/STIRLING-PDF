@@ -52,7 +52,9 @@ ENV HOME=/home/stirlingpdfuser \
     UMASK=022 \
     MODE=BOTH \
     BACKEND_INTERNAL_PORT=8081 \
-    VITE_API_BASE_URL=http://localhost:8080
+    VITE_API_BASE_URL=http://localhost:8080 \
+    SYSTEM_ENABLEMOBILESCANNER=true \
+    SYSTEM_FRONTENDURL=https://stirling-pdf-sage.vercel.app
 
 # Setup directories and permissions
 RUN mkdir -p $HOME /configs /logs /customFiles /pipeline /tmp/stirling-pdf && \
