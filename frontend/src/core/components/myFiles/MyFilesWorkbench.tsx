@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Stack, Text, Group, Card, Image, Button, ActionIcon, Title, Badge, SimpleGrid, Breadcrumbs, Anchor, Checkbox, Menu, Loader } from '@mantine/core';
+import { Box, Stack, Text, Group, Card, Image, Button, ActionIcon, Title, Badge, SimpleGrid, Breadcrumbs, Anchor, Checkbox, Menu, Loader, Modal, Slider, Select, TextInput, Tooltip, Divider } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { useFileStorage } from '@app/services/fileStorage';
 import { useFileActions, useFileContext } from '@app/contexts/file/fileHooks';
@@ -8,6 +8,56 @@ import { useToolWorkflow } from '@app/contexts/ToolWorkflowContext';
 import LocalIcon from '@app/components/shared/LocalIcon';
 import { StirlingFileStub } from '@app/types/fileContext';
 import { FileId } from '@app/types/file';
+
+// --- Effects Modal Component ---
+interface EffectsModalProps {
+  opened: boolean;
+  onClose: () => void;
+  files: StirlingFileStub[];
+  onApply: (params: any) => Promise<void>;
+}
+
+const EffectsModal = ({ opened, onClose, files, onApply }: EffectsModalProps) => {
+  const { t } = useTranslation();
+  const [brightness, setBrightness] = useState(0);
+  const [contrast, setContrast] = useState(1);
+  const [filter, setFilter] = useState('none');
+  const [loading, setLoading] = useState(false);
+
+  const handleApply = async () => {
+    setLoading(true);
+    await onApply({ brightness, contrast, scannyFilter: filter });
+    setLoading(false);
+    onClose();
+  };
+
+  return (
+    <Modal opened={opened} onClose={onClose} title={t('myFiles.applyEffects', 'Apply Effects')} size="md">
+      <Stack gap="md">
+        <Text size="sm">{t('myFiles.brightness', 'Brightness')}</Text>
+        <Slider value={brightness} onChange={setBrightness} min={-1} max={1} step={0.1} />
+        
+        <Text size="sm">{t('myFiles.contrast', 'Contrast')}</Text>
+        <Slider value={contrast} onChange={setContrast} min={0} max={2} step={0.1} />
+        
+        <Select
+          label={t('myFiles.filter', 'Filter')}
+          value={filter}
+          onChange={(v) => setFilter(v || 'none')}
+          data={[
+            { value: 'none', label: t('myFiles.none', 'None') },
+            { value: 'magic_color', label: t('myFiles.magicColor', 'Magic Color') },
+            { value: 'black_white', label: t('myFiles.enhancedBW', 'Enhanced B&W') },
+          ]}
+        />
+        
+        <Button onClick={handleApply} loading={loading} fullWidth mt="md">
+          {t('myFiles.applyEffects', 'Apply Effects')}
+        </Button>
+      </Stack>
+    </Modal>
+  );
+};
 
 export default function MyFilesWorkbench() {
   const { t } = useTranslation();
@@ -20,6 +70,13 @@ export default function MyFilesWorkbench() {
   const [loading, setLoading] = useState(true);
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const [selectedFileIds, setSelectedFileIds] = useState<Set<FileId>>(new Set());
+
+  // Modals state
+  const [effectsOpened, setEffectsOpened] = useState(false);
+  const [moveOpened, setMoveOpened] = useState(false);
+  const [newFolderOpened, setNewFolderOpened] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [targetFolder, setTargetFolder] = useState('');
 
   // Load all scans on mount
   const loadScans = async () => {
@@ -55,6 +112,10 @@ export default function MyFilesWorkbench() {
     if (!currentFolder) return [];
     return folders.find(f => f.name === currentFolder)?.files || [];
   }, [currentFolder, folders]);
+
+  const selectedFiles = useMemo(() => {
+    return allScans.filter(f => selectedFileIds.has(f.id));
+  }, [allScans, selectedFileIds]);
 
   const toggleSelection = (id: FileId) => {
     const newSelected = new Set(selectedFileIds);
@@ -116,6 +177,84 @@ export default function MyFilesWorkbench() {
     }
   };
 
+  const handleShare = async () => {
+    if (selectedFiles.length === 0) return;
+    const file = await fileStorage.getStirlingFile(selectedFiles[0].id);
+    if (file && navigator.share) {
+      try {
+        await navigator.share({
+          files: [new File([file], file.name, { type: file.type })],
+          title: file.name,
+        });
+      } catch (err) {
+        console.error('Share failed:', err);
+      }
+    } else {
+        alert('Web Share API not supported on this browser/device.');
+    }
+  };
+
+  const handlePrint = async () => {
+    if (selectedFiles.length === 0) return;
+    const file = await fileStorage.getStirlingFile(selectedFiles[0].id);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      const printWindow = window.open(url);
+      if (printWindow) {
+        printWindow.addEventListener('load', () => {
+          printWindow.print();
+        });
+      }
+    }
+  };
+
+  const handleApplyEffects = async (params: any) => {
+    for (const fileStub of selectedFiles) {
+      const file = await fileStorage.getStirlingFile(fileStub.id);
+      if (!file) continue;
+
+      const formData = new FormData();
+      formData.append('fileInput', file);
+      formData.append('brightness', params.brightness.toString());
+      formData.append('contrast', params.contrast.toString());
+      formData.append('scannyFilter', params.scannyFilter);
+      formData.append('colorspace', 'color');
+      formData.append('renderResolution', '150');
+
+      try {
+        const response = await fetch('/api/v1/misc/scanner-effect', {
+          method: 'POST',
+          body: formData,
+        });
+        if (response.ok) {
+          const blob = await response.blob();
+          const newFile = new File([blob], file.name, { type: 'image/jpeg' });
+          const stirlingFile = { fileId: fileStub.id, file: newFile };
+          await fileStorage.storeStirlingFile(stirlingFile as any, fileStub);
+        }
+      } catch (err) {
+        console.error('Filter apply failed:', err);
+      }
+    }
+    await loadScans();
+  };
+
+  const handleMoveFiles = async () => {
+    for (const id of Array.from(selectedFileIds)) {
+      const stub = allScans.find(s => s.id === id);
+      if (stub) {
+        stub.folder = targetFolder;
+        // Simplified: store again to update folder metadata
+        const stirlingFile = await fileStorage.getStirlingFile(id);
+        if (stirlingFile) {
+          await fileStorage.storeStirlingFile({ fileId: id, file: stirlingFile } as any, stub);
+        }
+      }
+    }
+    setMoveOpened(false);
+    await loadScans();
+  };
+
   if (loading) {
     return (
       <Box h="100%" p="xl" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -139,20 +278,47 @@ export default function MyFilesWorkbench() {
             ) : t('myFiles.title', 'My Files')}
           </Title>
         
-        {currentFolder && selectedFileIds.size > 0 && (
           <Group>
-            <Button leftSection={<LocalIcon icon="picture-as-pdf" />} color="blue" onClick={handleConvertToPdf}>
-              {t('myFiles.convertToPdf', 'Convert to PDF')}
-            </Button>
-            <Button leftSection={<LocalIcon icon="download" />} variant="outline" color="green" onClick={handleSaveToGallery}>
-              {t('myFiles.saveToGallery', 'Save to Gallery')}
-            </Button>
-            <ActionIcon color="red" variant="subtle" size="lg" onClick={handleDelete}>
-              <LocalIcon icon="delete" />
-            </ActionIcon>
+            {!currentFolder && (
+              <Button leftSection={<LocalIcon icon="create-new-folder" />} variant="light" onClick={() => setNewFolderOpened(true)}>
+                {t('myFiles.newFolder', 'New Folder')}
+              </Button>
+            )}
+            {currentFolder && selectedFileIds.size > 0 && (
+              <Group gap="xs">
+                <Tooltip label={t('myFiles.effects', 'Effects')}>
+                  <ActionIcon variant="light" size="lg" color="indigo" onClick={() => setEffectsOpened(true)}>
+                    <LocalIcon icon="auto-fix-high" />
+                  </ActionIcon>
+                </Tooltip>
+                
+                <Tooltip label={t('myFiles.share', 'Share')}>
+                  <ActionIcon variant="light" size="lg" color="teal" onClick={handleShare}>
+                    <LocalIcon icon="share-rounded" />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip label={t('myFiles.print', 'Print')}>
+                  <ActionIcon variant="light" size="lg" color="gray" onClick={handlePrint}>
+                    <LocalIcon icon="print" />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Divider orientation="vertical" />
+
+                <Button leftSection={<LocalIcon icon="picture-as-pdf" />} color="blue" variant="filled" onClick={handleConvertToPdf}>
+                  {t('myFiles.convertToPdf', 'Convert to PDF')}
+                </Button>
+                <Button leftSection={<LocalIcon icon="download" />} variant="outline" color="green" onClick={handleSaveToGallery}>
+                  {t('myFiles.saveToGallery', 'Save to Gallery')}
+                </Button>
+                <ActionIcon color="red" variant="subtle" size="lg" onClick={handleDelete}>
+                  <LocalIcon icon="delete" />
+                </ActionIcon>
+              </Group>
+            )}
           </Group>
-        )}
-      </Group>
+        </Group>
 
       {/* folders section */}
       {!currentFolder ? (
@@ -164,14 +330,14 @@ export default function MyFilesWorkbench() {
                 p="lg" 
                 radius="md" 
                 withBorder 
-                style={{ cursor: 'pointer', '&:hover': { background: 'var(--mantine-color-gray-0)' } }}
+                style={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)', background: 'var(--mantine-color-gray-0)' } }}
                 onClick={() => setCurrentFolder(folder.name)}
               >
                 <Group justify="space-between">
                   <Group gap="sm">
-                    <LocalIcon icon="folder-rounded" width="2rem" height="2rem" style={{ color: "var(--mantine-color-blue-6)" }} />
+                    <LocalIcon icon="folder-rounded" width="2.5rem" height="2.5rem" style={{ color: "var(--mantine-color-blue-6)" }} />
                     <Stack gap={0}>
-                      <Text fw={500}>{folder.name}</Text>
+                      <Text fw={600} size="lg">{folder.name}</Text>
                       <Text size="xs" color="dimmed">{folder.files.length} {t('myFiles.files', 'files')}</Text>
                     </Stack>
                   </Group>
@@ -181,20 +347,28 @@ export default function MyFilesWorkbench() {
             ))}
             {folders.length === 0 && (
               <Box p="xl" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
+                <LocalIcon icon="folder-off" width="4rem" height="4rem" style={{ opacity: 0.2, marginBottom: '1rem' }} />
                 <Text color="dimmed">{t('myFiles.noScans', 'No scans yet. Use the camera to start scanning!')}</Text>
               </Box>
             )}
           </SimpleGrid>
         ) : (
           <Stack>
-            <Group>
-              <Checkbox 
-                label={t('myFiles.selectAll', 'Select All')} 
-                checked={selectedFileIds.size === currentFolderFiles.length && currentFolderFiles.length > 0} 
-                indeterminate={selectedFileIds.size > 0 && selectedFileIds.size < currentFolderFiles.length}
-                onChange={(e) => handleSelectAll(e.currentTarget.checked)}
-              />
-              <Text size="sm" color="dimmed">{selectedFileIds.size} selected</Text>
+            <Group justify="space-between">
+              <Group>
+                <Checkbox 
+                  label={t('myFiles.selectAll', 'Select All')} 
+                  checked={selectedFileIds.size === currentFolderFiles.length && currentFolderFiles.length > 0} 
+                  indeterminate={selectedFileIds.size > 0 && selectedFileIds.size < currentFolderFiles.length}
+                  onChange={(e) => handleSelectAll(e.currentTarget.checked)}
+                />
+                <Text size="sm" color="dimmed">{selectedFileIds.size} selected</Text>
+              </Group>
+              {selectedFileIds.size > 0 && (
+                <Button variant="subtle" size="xs" leftSection={<LocalIcon icon="drive-file-move" />} onClick={() => setMoveOpened(true)}>
+                  {t('myFiles.moveToFolder', 'Move to Folder')}
+                </Button>
+              )}
             </Group>
 
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 6 }} spacing="md">
@@ -219,21 +393,61 @@ export default function MyFilesWorkbench() {
                   <Card.Section onClick={() => toggleSelection(file.id)} style={{ cursor: 'pointer' }}>
                     <Image
                       src={file.thumbnailUrl}
-                      height={160}
+                      height={180}
                       alt={file.name}
-                      fallbackSrc="https://placehold.co/160x160?text=Scan"
+                      fallbackSrc="https://placehold.co/180x180?text=Scan"
+                      fit="contain"
+                      style={{ padding: '4px' }}
                     />
                   </Card.Section>
-                  <Text size="xs" mt="xs" truncate fw={500}>{file.name}</Text>
-                  <Text size="xs" color="dimmed">
-                    {(file.size / 1024).toFixed(1)} KB
-                  </Text>
+                  <Box p="xs">
+                    <Text size="xs" mt="xs" truncate fw={500}>{file.name}</Text>
+                    <Text size="xs" color="dimmed">
+                      {(file.size / 1024).toFixed(1)} KB
+                    </Text>
+                  </Box>
                 </Card>
               ))}
             </SimpleGrid>
           </Stack>
         )}
       </Stack>
+
+      {/* Modals */}
+      <EffectsModal 
+        opened={effectsOpened} 
+        onClose={() => setEffectsOpened(false)} 
+        files={selectedFiles}
+        onApply={handleApplyEffects}
+      />
+
+      <Modal opened={newFolderOpened} onClose={() => setNewFolderOpened(false)} title={t('myFiles.createFolder', 'Create Folder')}>
+        <Stack>
+          <TextInput 
+            label={t('myFiles.folderName', 'Folder Name')} 
+            placeholder="e.g. Invoices" 
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.currentTarget.value)}
+          />
+          <Button disabled={!newFolderName} onClick={() => { setCurrentFolder(newFolderName); setNewFolderOpened(false); }}>
+            {t('myFiles.createFolder', 'Create Folder')}
+          </Button>
+        </Stack>
+      </Modal>
+
+      <Modal opened={moveOpened} onClose={() => setMoveOpened(false)} title={t('myFiles.moveToFolder', 'Move to Folder')}>
+        <Stack>
+          <Select 
+            label={t('myFiles.moveToFolder', 'Move to Folder')}
+            data={folders.map(f => ({ value: f.name, label: f.name }))}
+            value={targetFolder}
+            onChange={(v) => setTargetFolder(v || '')}
+          />
+          <Button disabled={!targetFolder} onClick={handleMoveFiles}>
+            {t('myFiles.moveToFolder', 'Move to Folder')}
+          </Button>
+        </Stack>
+      </Modal>
     </Box>
   );
 }
