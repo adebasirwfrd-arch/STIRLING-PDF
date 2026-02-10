@@ -14,6 +14,7 @@ import { useFileActionIcons } from '@app/hooks/useFileActionIcons';
 import { useAppConfig } from '@app/contexts/AppConfigContext';
 import { useIsMobile } from '@app/hooks/useIsMobile';
 import MobileUploadModal from '@app/components/shared/MobileUploadModal';
+import CameraCaptureModal from '@app/components/shared/CameraCaptureModal';
 
 const LandingPage = () => {
   const { addFiles } = useFileHandler();
@@ -28,6 +29,7 @@ const LandingPage = () => {
   const { loadRecentFiles } = useFileManager();
   const [hasRecents, setHasRecents] = React.useState<boolean>(false);
   const [mobileUploadModalOpen, setMobileUploadModalOpen] = React.useState(false);
+  const [cameraModalOpen, setCameraModalOpen] = React.useState(false);
   const terminology = useFileActionTerminology();
   const icons = useFileActionIcons();
   const { config } = useAppConfig();
@@ -62,6 +64,10 @@ const LandingPage = () => {
     if (files.length > 0) {
       await addFiles(files);
     }
+  };
+
+  const handleCameraCapture = async (file: File) => {
+    await addFiles([file]);
   };
 
   // Determine if the user has any recent files (same source as File Manager)
@@ -192,6 +198,22 @@ const LandingPage = () => {
                     )}
                   </Button>
                   <Button
+                    onClick={() => setCameraModalOpen(true)}
+                    style={{
+                      backgroundColor: 'var(--landing-button-bg)',
+                      color: 'var(--landing-button-color)',
+                      border: '1px solid var(--landing-button-border)',
+                      borderRadius: '1rem',
+                      height: '38px',
+                      width: '58px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <LocalIcon icon="photo-camera-rounded" width="1.25rem" height="1.25rem" style={{ color: 'var(--accent-interactive)' }} />
+                  </Button>
+                  <Button
                     aria-label="Upload"
                     style={{
                       backgroundColor: 'var(--landing-button-bg)',
@@ -264,6 +286,22 @@ const LandingPage = () => {
                       {t('landing.uploadFromComputer', 'Upload from computer')}
                     </span>
                   </Button>
+                  <Button
+                    onClick={() => setCameraModalOpen(true)}
+                    style={{
+                      backgroundColor: 'var(--landing-button-bg)',
+                      color: 'var(--landing-button-color)',
+                      border: '1px solid var(--landing-button-border)',
+                      borderRadius: '1rem',
+                      height: '38px',
+                      width: '58px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <LocalIcon icon="photo-camera-rounded" width="1.25rem" height="1.25rem" style={{ color: 'var(--accent-interactive)' }} />
+                  </Button>
                   {config?.enableMobileScanner && !isMobile && (
                     <Tooltip label={t('landing.mobileUpload', 'Upload from Mobile')} position="bottom">
                       <ActionIcon
@@ -311,6 +349,11 @@ const LandingPage = () => {
         opened={mobileUploadModalOpen}
         onClose={() => setMobileUploadModalOpen(false)}
         onFilesReceived={handleFilesReceivedFromMobile}
+      />
+      <CameraCaptureModal
+        opened={cameraModalOpen}
+        onClose={() => setCameraModalOpen(false)}
+        onCapture={handleCameraCapture}
       />
     </Container>
   );

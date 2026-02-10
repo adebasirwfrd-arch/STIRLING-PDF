@@ -3,6 +3,7 @@ import { Stack, Text, Button, Group } from '@mantine/core';
 import HistoryIcon from '@mui/icons-material/History';
 import CloudIcon from '@mui/icons-material/Cloud';
 import PhonelinkIcon from '@mui/icons-material/Phonelink';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { useTranslation } from 'react-i18next';
 import { useFileManagerContext } from '@app/contexts/FileManagerContext';
 import { useGoogleDrivePicker } from '@app/hooks/useGoogleDrivePicker';
@@ -11,6 +12,7 @@ import { useFileActionIcons } from '@app/hooks/useFileActionIcons';
 import { useAppConfig } from '@app/contexts/AppConfigContext';
 import { useIsMobile } from '@app/hooks/useIsMobile';
 import MobileUploadModal from '@app/components/shared/MobileUploadModal';
+import CameraCaptureModal from '@app/components/shared/CameraCaptureModal';
 
 interface FileSourceButtonsProps {
   horizontal?: boolean;
@@ -26,6 +28,7 @@ const FileSourceButtons: React.FC<FileSourceButtonsProps> = ({
   const icons = useFileActionIcons();
   const UploadIcon = icons.upload;
   const [mobileUploadModalOpen, setMobileUploadModalOpen] = useState(false);
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
   const { config } = useAppConfig();
   const isMobile = useIsMobile();
   const isMobileUploadEnabled = config?.enableMobileScanner && !isMobile;
@@ -49,6 +52,10 @@ const FileSourceButtons: React.FC<FileSourceButtonsProps> = ({
     if (files.length > 0) {
       onNewFilesSelect(files);
     }
+  };
+
+  const handleCameraCapture = (file: File) => {
+    onNewFilesSelect([file]);
   };
 
   const buttonProps = {
@@ -146,6 +153,27 @@ const FileSourceButtons: React.FC<FileSourceButtonsProps> = ({
       >
         {horizontal ? t('fileManager.mobileShort', 'Mobile') : t('fileManager.mobileUpload', 'Mobile Upload')}
       </Button>
+
+      <Button
+        variant="subtle"
+        color='var(--mantine-color-gray-6)'
+        leftSection={<PhotoCameraIcon />}
+        justify={horizontal ? "center" : "flex-start"}
+        onClick={() => setCameraModalOpen(true)}
+        fullWidth={!horizontal}
+        size={horizontal ? "xs" : "sm"}
+        styles={{
+          root: {
+            backgroundColor: 'transparent',
+            border: 'none',
+            '&:hover': {
+              backgroundColor: 'var(--mantine-color-gray-0)'
+            }
+          }
+        }}
+      >
+        {horizontal ? t('camera', 'Camera') : t('camera.title', 'Camera Scan')}
+      </Button>
     </>
   );
 
@@ -159,6 +187,11 @@ const FileSourceButtons: React.FC<FileSourceButtonsProps> = ({
           opened={mobileUploadModalOpen}
           onClose={() => setMobileUploadModalOpen(false)}
           onFilesReceived={handleFilesReceivedFromMobile}
+        />
+        <CameraCaptureModal
+          opened={cameraModalOpen}
+          onClose={() => setCameraModalOpen(false)}
+          onCapture={handleCameraCapture}
         />
       </>
     );
@@ -176,6 +209,11 @@ const FileSourceButtons: React.FC<FileSourceButtonsProps> = ({
         opened={mobileUploadModalOpen}
         onClose={() => setMobileUploadModalOpen(false)}
         onFilesReceived={handleFilesReceivedFromMobile}
+      />
+      <CameraCaptureModal
+        opened={cameraModalOpen}
+        onClose={() => setCameraModalOpen(false)}
+        onCapture={handleCameraCapture}
       />
     </>
   );
