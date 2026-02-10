@@ -189,8 +189,8 @@ export default function Workbench() {
           : { backgroundColor: 'var(--bg-background)' }
       }
     >
-      {/* Top Controls */}
-      {activeFiles.length > 0 && (
+      {/* Top Controls - Hide in PDF Text Editor */}
+      {activeFiles.length > 0 && currentView !== 'custom:pdfTextEditor' && (
         <TopControls
           currentView={currentView}
           setCurrentView={setCurrentView}
@@ -218,14 +218,17 @@ export default function Workbench() {
         {renderMainContent()}
       </Box>
 
-      <Footer
-        analyticsEnabled={config?.enableAnalytics === true}
-        termsAndConditions={config?.termsAndConditions}
-        privacyPolicy={config?.privacyPolicy}
-        cookiePolicy={config?.cookiePolicy}
-        impressum={config?.impressum}
-        accessibilityStatement={config?.accessibilityStatement}
-      />
+      {/* Footer - Hide in PDF Text Editor */}
+      {currentView !== 'custom:pdfTextEditor' && (
+        <Footer
+          analyticsEnabled={config?.enableAnalytics === true}
+          termsAndConditions={config?.termsAndConditions}
+          privacyPolicy={config?.privacyPolicy}
+          cookiePolicy={config?.cookiePolicy}
+          impressum={config?.impressum}
+          accessibilityStatement={config?.accessibilityStatement}
+        />
+      )}
     </Box>
   );
 }
