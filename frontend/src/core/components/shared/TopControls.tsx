@@ -13,6 +13,10 @@ import { FileDropdownMenu } from '@app/components/shared/FileDropdownMenu';
 import { usePageEditorDropdownState, PageEditorDropdownState } from '@app/components/pageEditor/hooks/usePageEditorDropdownState';
 
 
+import { useFileHandler } from '@app/hooks/useFileHandler';
+import { useToolWorkflow } from '@app/contexts/ToolWorkflowContext';
+import { FileMenu } from './FileMenu';
+
 const viewOptionStyle: React.CSSProperties = {
   display: 'inline-flex',
   flexDirection: 'row',
@@ -144,6 +148,22 @@ const TopControls = ({
 }: TopControlsProps) => {
   const { isRainbowMode } = useRainbowThemeContext();
   const [switchingTo, setSwitchingTo] = useState<WorkbenchType | null>(null);
+  const { downloadFile } = useFileHandler();
+  const { setPreviewFile, handleToolSelect } = useToolWorkflow();
+
+  const handleSave = useCallback(() => {
+    if (activeFiles[currentFileIndex]) {
+      downloadFile(activeFiles[currentFileIndex].fileId);
+    }
+  }, [activeFiles, currentFileIndex, downloadFile]);
+
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
+  const handleClose = useCallback(() => {
+      setPreviewFile(null);
+  }, [setPreviewFile]);
 
   const pageEditorState = usePageEditorDropdownState();
 
@@ -182,6 +202,16 @@ const TopControls = ({
 
   return (
     <div className="absolute left-0 w-full top-0 z-[100] pointer-events-none">
+      {/* File Menu - specific pointer events to allow clicking */}
+      <div className="absolute left-4 top-0 h-[1.8rem] z-[101] pointer-events-auto">
+        <FileMenu 
+          onSave={handleSave}
+          onPrint={handlePrint}
+          onClose={handleClose}
+          disabled={activeFiles.length === 0}
+        />
+      </div>
+
       <div className="flex justify-center">
 
         <SegmentedControl

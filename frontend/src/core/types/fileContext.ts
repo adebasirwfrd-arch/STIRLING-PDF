@@ -63,7 +63,7 @@ export function createFileId(): FileId {
     return window.crypto.randomUUID() as FileId;
   }
   // Fallback for environments without randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
     const v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
@@ -85,7 +85,7 @@ export interface StirlingFile extends File {
 // Type guard to check if a File object has an embedded fileId
 export function isStirlingFile(file: File): file is StirlingFile {
   return 'fileId' in file && typeof (file as any).fileId === 'string' &&
-         'quickKey' in file && typeof (file as any).quickKey === 'string';
+    'quickKey' in file && typeof (file as any).quickKey === 'string';
 }
 
 // Create a StirlingFile from a regular File object
@@ -139,11 +139,11 @@ export function extractFiles(files: StirlingFile[]): File[] {
 // Check if an object is a File or StirlingFile (replaces instanceof File checks)
 export function isFileObject(obj: any): obj is File | StirlingFile {
   return obj &&
-         typeof obj.name === 'string' &&
-         typeof obj.size === 'number' &&
-         typeof obj.type === 'string' &&
-         typeof obj.lastModified === 'number' &&
-         typeof obj.arrayBuffer === 'function';
+    typeof obj.name === 'string' &&
+    typeof obj.size === 'number' &&
+    typeof obj.type === 'string' &&
+    typeof obj.lastModified === 'number' &&
+    typeof obj.arrayBuffer === 'function';
 }
 
 
@@ -303,6 +303,7 @@ export interface FileContextActions {
   scheduleCleanup: (fileId: FileId, delay?: number) => void;
   cleanupFile: (fileId: FileId) => void;
   openEncryptedUnlockPrompt: (fileId: FileId) => void;
+  downloadFile: (fileId: FileId) => void;
 }
 
 // File selectors (separate from actions to avoid re-renders)

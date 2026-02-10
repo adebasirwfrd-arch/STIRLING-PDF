@@ -15,5 +15,6 @@ export const useFileHandler = () => {
 
   return {
     addFiles,
+    downloadFile: actions.downloadFile,
   };
 };
