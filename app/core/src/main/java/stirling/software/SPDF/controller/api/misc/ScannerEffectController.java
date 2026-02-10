@@ -44,6 +44,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import stirling.software.SPDF.model.api.misc.ScannerEffectRequest;
+import stirling.software.SPDF.service.GoogleDriveService;
+import stirling.software.SPDF.service.PerspectiveCorrectionService;
 import stirling.software.common.annotations.AutoJobPostMapping;
 import stirling.software.common.annotations.api.MiscApi;
 import stirling.software.common.model.ApplicationProperties;
@@ -59,6 +61,8 @@ import stirling.software.common.util.WebResponseUtils;
 public class ScannerEffectController {
 
     private final CustomPDFDocumentFactory pdfDocumentFactory;
+    private final GoogleDriveService googleDriveService;
+    private final PerspectiveCorrectionService perspectiveCorrectionService;
     private static final int MAX_IMAGE_WIDTH = 8192;
     private static final int MAX_IMAGE_HEIGHT = 8192;
     private static final long MAX_IMAGE_PIXELS = 16_777_216; // 4096x4096
@@ -479,7 +483,7 @@ public class ScannerEffectController {
         }
     }
 
-    private static ProcessedPage processPage(
+    private ProcessedPage processPage(
             int pageIndex,
             RenderingResources renderingResources,
             int baseRotation,
@@ -491,7 +495,9 @@ public class ScannerEffectController {
             float noise,
             boolean yellowish,
             int renderResolution,
-            ScannerEffectRequest.Colorspace colorspace)
+            ScannerEffectRequest.Colorspace colorspace,
+            boolean autoCrop,
+            String scannyFilter)
             throws ExceptionUtils.OutOfMemoryDpiException {
 
         try {
@@ -503,6 +509,17 @@ public class ScannerEffectController {
                     calculateSafeResolution(pageWidthPts, pageHeightPts, renderResolution);
 
             BufferedImage image = renderingResources.renderPage(pageIndex, safeResolution);
+
+            if (autoCrop) {
+                image = perspectiveCorrectionService.autoCropAndWarp(image);
+            }
+
+            if ("magic_color".equalsIgnoreCase(scannyFilter)) {
+                image = applyMagicColor(image);
+            } else if ("black_white".equalsIgnoreCase(scannyFilter)) {
+                image = applyBlackAndWhite(image);
+            }
+
             BufferedImage processed = convertColorspace(image, colorspace);
             image.flush();
 
@@ -634,7 +651,7 @@ public class ScannerEffectController {
                             "The provided PDF contains no pages to process.");
                 }
                 int configuredParallelism =
-                        Math.min(64, Math.max(2, Runtime.getRuntime().availableProcessors() * 2));
+                        Math.min(4, Math.max(1, Runtime.getRuntime().availableProcessors()));
                 int desiredParallelism = Math.max(1, Math.min(totalPages, configuredParallelism));
 
                 try (ManagedForkJoinPool managedPool =
@@ -683,7 +700,11 @@ public class ScannerEffectController {
                                                                                 noise,
                                                                                 yellowish,
                                                                                 renderResolution,
-                                                                                colorspace))
+                                                                                colorspace,
+                                                                                request
+                                                                                        .isAutoCrop(),
+                                                                                request
+                                                                                        .getScannyFilter()))
                                         .toList();
 
                         List<Future<ProcessedPage>> futures = customPool.invokeAll(tasks);
@@ -709,9 +730,25 @@ public class ScannerEffectController {
                     writeProcessedPagesToDocument(processedPages, outputDocument);
 
                     outputDocument.save(outputStream);
+                    byte[] processedBytes = outputStream.toByteArray();
+
+                    if (request.isGoogleDriveSync()) {
+                        try {
+                            Path tempOutput = Files.createTempFile("scanner_effect_sync_", ".pdf");
+                            Files.write(tempOutput, processedBytes);
+                            googleDriveService.uploadFile(
+                                    tempOutput,
+                                    GeneralUtils.generateFilename(
+                                            file.getOriginalFilename(), "_scanner_effect.pdf"),
+                                    "application/pdf");
+                            Files.deleteIfExists(tempOutput);
+                        } catch (Exception e) {
+                            log.error("Failed to sync file to Google Drive", e);
+                        }
+                    }
 
                     return WebResponseUtils.bytesToWebResponse(
-                            outputStream.toByteArray(),
+                            processedBytes,
                             GeneralUtils.generateFilename(
                                     file.getOriginalFilename(), "_scanner_effect.pdf"));
                 }
@@ -804,17 +841,67 @@ public class ScannerEffectController {
         public void close() {
             pool.shutdown();
             try {
-                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                if (!pool.awaitTermination(30, TimeUnit.SECONDS)) {
                     pool.shutdownNow();
-                    if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
-                        log.warn("ForkJoinPool did not terminate within timeout");
-                    }
                 }
             } catch (InterruptedException e) {
                 pool.shutdownNow();
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    private static BufferedImage applyMagicColor(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+        int[] outPixels = ((DataBufferInt) result.getRaster().getDataBuffer()).getData();
+
+        for (int i = 0; i < pixels.length; i++) {
+            int rgb = pixels[i];
+            int r = (rgb >> 16) & 0xFF;
+            int g = (rgb >> 8) & 0xFF;
+            int b = rgb & 0xFF;
+
+            // Boost individual channels with a Curve-like effect
+            r = boost(r);
+            g = boost(g);
+            b = boost(b);
+
+            outPixels[i] = (r << 16) | (g << 8) | b;
+        }
+        return result;
+    }
+
+    private static int boost(int c) {
+        double v = c / 255.0;
+        // Simple magic color gamma/contrast boost
+        v = Math.pow(v, 0.8) * 1.1;
+        return Math.min(255, (int) (v * 255));
+    }
+
+    private static BufferedImage applyBlackAndWhite(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+        int[] outPixels = ((DataBufferInt) result.getRaster().getDataBuffer()).getData();
+
+        for (int i = 0; i < pixels.length; i++) {
+            int rgb = pixels[i];
+            int r = (rgb >> 16) & 0xFF;
+            int g = (rgb >> 8) & 0xFF;
+            int b = rgb & 0xFF;
+
+            int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+            int bw = (gray > 128) ? 255 : 0;
+
+            outPixels[i] = (bw << 16) | (bw << 8) | bw;
+        }
+        return result;
     }
 
     private record GradientConfig(boolean vertical, Color startColor, Color endColor) {}

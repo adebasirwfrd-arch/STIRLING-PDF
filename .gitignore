@@ -244,3 +244,8 @@ docs/type3/signatures/
 
 # Type3 sample PDFs (development only)
 **/type3/samples/
+
+# User Configs and Credentials
+configs/
+*.log
+*pid.txt

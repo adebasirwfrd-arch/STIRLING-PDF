@@ -79,6 +79,17 @@ public class ScannerEffectRequest {
     @Schema(description = "Whether advanced settings are enabled", example = "false")
     private boolean advancedEnabled = false;
 
+    @Schema(description = "Whether to sync the processed file to Google Drive", example = "false")
+    private boolean googleDriveSync = false;
+
+    @Schema(
+            description = "Whether to auto-crop the document using perspective correction",
+            example = "false")
+    private boolean autoCrop = false;
+
+    @Schema(description = "Scanny style filter to apply", example = "magic_color")
+    private String scannyFilter = "none"; // Options: none, magic_color, black_white
+
     public int getRotationValue() {
         return switch (rotation) {
             case none -> 0;

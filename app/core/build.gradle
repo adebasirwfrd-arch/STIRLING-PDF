@@ -60,6 +60,14 @@ dependencies {
     implementation "org.apache.pdfbox:preflight:$pdfboxVersion"
     implementation "org.apache.pdfbox:xmpbox:$pdfboxVersion"
 
+    // Google Drive API
+    implementation 'com.google.api-client:google-api-client:2.0.0'
+    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
+    implementation 'com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0'
+
+    // OpenCV for Auto-Crop/Perspective Correction
+    implementation 'org.openpnp:opencv:4.9.0-0'
+
     implementation 'org.verapdf:validation-model:1.28.2'
 
     // veraPDF still uses javax.xml.bind, not the new jakarta namespace

@@ -134,6 +134,7 @@ import ShowJS from "@app/tools/ShowJS";
 import Automate from "@app/tools/Automate";
 import Compare from "@app/tools/Compare";
 import { CONVERT_SUPPORTED_FORMATS } from "@app/constants/convertSupportedFornats";
+import ScannerEffect from "@app/tools/ScannerEffect";
 
 
 
@@ -776,7 +777,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
       scannerEffect: {
         icon: <LocalIcon icon="scanner-rounded" width="1.5rem" height="1.5rem" />,
         name: t("home.scannerEffect.title", "Scanner Effect"),
-        component: null,
+        component: ScannerEffect,
         description: t("home.scannerEffect.desc", "Create a PDF that looks like it was scanned"),
         categoryId: ToolCategoryId.ADVANCED_TOOLS,
         subcategoryId: SubcategoryId.ADVANCED_FORMATTING,

@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
       })
     ],
     server: {
-      host: true,
+      host: '127.0.0.1',
       // make sure this port matches the devUrl port in tauri.conf.json file
       port: 5173,
       // Tauri expects a fixed port, fail if that port is not available
