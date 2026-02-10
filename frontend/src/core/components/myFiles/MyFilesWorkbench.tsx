@@ -8,6 +8,7 @@ import { useToolWorkflow } from '@app/contexts/ToolWorkflowContext';
 import LocalIcon from '@app/components/shared/LocalIcon';
 import { StirlingFileStub } from '@app/types/fileContext';
 import { FileId } from '@app/types/file';
+import { getGoogleDrivePickerService, getGoogleDriveConfig, isGoogleDriveConfigured } from '@app/services/googleDrivePickerService';
 
 // --- Effects Modal Component ---
 interface EffectsModalProps {
@@ -173,6 +174,8 @@ export default function MyFilesWorkbench() {
   const [previewFileIndex, setPreviewFileIndex] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState('');
 
   // Modals state
   const [effectsOpened, setEffectsOpened] = useState(false);
@@ -232,6 +235,76 @@ export default function MyFilesWorkbench() {
       setSelectedFileIds(new Set(currentFolderFiles.map(f => f.id)));
     } else {
       setSelectedFileIds(new Set());
+    }
+  };
+
+
+
+
+  const handleSyncToDrive = async () => {
+    if (!isGoogleDriveConfigured()) {
+        alert(t('myFiles.driveNotConfigured', 'Google Drive is not configured.'));
+        return;
+    }
+    
+    setSyncing(true);
+    setSyncProgress(t('myFiles.authenticating', 'Authenticating...'));
+    
+    try {
+        const driveService = getGoogleDrivePickerService();
+        const config = getGoogleDriveConfig();
+        if (config) await driveService.initialize(config);
+        
+        // Ensure auth
+        await driveService.requestAccessToken();
+        
+        setSyncProgress(t('myFiles.checkingFolder', 'Checking folder...'));
+        const folderId = await driveService.ensureFolder('scannereffect');
+        
+        setSyncProgress(t('myFiles.checkingFiles', 'Checking existing files...'));
+        const existingFiles = await driveService.listFilesInFolder(folderId);
+        
+        const filesToSync = allScans; // Sync all local scans
+        let syncedCount = 0;
+        let skippedCount = 0;
+        let errorCount = 0;
+        
+        for (let i = 0; i < filesToSync.length; i++) {
+            const fileStub = filesToSync[i];
+            const fileName = fileStub.name; 
+            
+            // Deduplication by name
+            if (existingFiles.has(fileName)) {
+                skippedCount++;
+                continue;
+            }
+            
+            setSyncProgress(t('myFiles.syncingFile', `Syncing ${i + 1}/${filesToSync.length}: ${fileName}`));
+            
+            try {
+                // Fetch actual file blob
+                const file = await fileStorage.getStirlingFile(fileStub.id);
+                if (file) {
+                    await driveService.uploadFile(file, folderId);
+                    syncedCount++;
+                } else {
+                    console.error(`File content missing for ${fileName}`);
+                    errorCount++;
+                }
+            } catch (err) {
+                console.error(`Failed to upload ${fileName}:`, err);
+                errorCount++;
+            }
+        }
+        
+        alert(t('myFiles.syncComplete', `Sync complete!\nUploaded: ${syncedCount}\nSkipped: ${skippedCount}\nErrors: ${errorCount}`));
+        
+    } catch (error) {
+        console.error('Sync failed:', error);
+        alert(t('myFiles.syncFailed', `Sync failed: ${(error as Error).message}`));
+    } finally {
+        setSyncing(false);
+        setSyncProgress('');
     }
   };
 
@@ -431,9 +504,21 @@ export default function MyFilesWorkbench() {
         
           <Group>
             {!currentFolder && (
-              <Button leftSection={<LocalIcon icon="create-new-folder" />} variant="light" onClick={() => setNewFolderOpened(true)}>
-                {t('myFiles.newFolder', 'New Folder')}
-              </Button>
+              <Group>
+                <Button 
+                  leftSection={syncing ? <Loader size="xs" color="white" /> : <LocalIcon icon="cloud-upload" />} 
+                  variant="light" 
+                  color="orange" 
+                  onClick={handleSyncToDrive} 
+                  loading={syncing}
+                  disabled={syncing}
+                >
+                  {syncing ? (syncProgress || t('myFiles.syncing', 'Syncing...')) : t('myFiles.syncToDrive', 'Sync to Drive')}
+                </Button>
+                <Button leftSection={<LocalIcon icon="create-new-folder" />} variant="light" onClick={() => setNewFolderOpened(true)}>
+                  {t('myFiles.newFolder', 'New Folder')}
+                </Button>
+              </Group>
             )}
             {currentFolder && selectedFileIds.size > 0 && (
               <Group gap="xs">

@@ -5,7 +5,7 @@
 
 import { loadScript } from '@app/utils/scriptLoader';
 
-const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+const SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
 const ACCESS_TOKEN_KEY = 'googleDrivePickerAccessToken';
 const TOKEN_EXPIRY_KEY = 'googleDrivePickerTokenExpiry';
 const EXPIRY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minute buffer
@@ -157,7 +157,10 @@ class GoogleDrivePickerService {
   /**
    * Request access token from Google
    */
-  private requestAccessToken(): Promise<void> {
+  /**
+   * Request access token from Google
+   */
+  public requestAccessToken(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.tokenClient) {
         reject(new Error('Token client not initialized'));
@@ -267,6 +270,152 @@ class GoogleDrivePickerService {
       }
     } else if (data.action === window.google.picker.Action.CANCEL) {
       resolve([]); // User cancelled, return empty array
+    }
+  }
+
+  /**
+   * Ensure a folder exists in Google Drive (root level)
+   */
+  async ensureFolder(folderName: string): Promise<string> {
+    if (!this.accessToken) {
+      throw new Error('No access token');
+    }
+
+    // Check if folder exists
+    const q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+    const response: any = await window.gapi.client.drive.files.list({
+      q: q,
+      fields: 'files(id, name)',
+      spaces: 'drive',
+    });
+
+    if (response.result.files && response.result.files.length > 0) {
+      return response.result.files[0].id;
+    }
+
+    // Create folder
+    const fileMetadata = {
+      name: folderName,
+      mimeType: 'application/vnd.google-apps.folder',
+    };
+    const createResponse: any = await window.gapi.client.drive.files.create({
+      resource: fileMetadata,
+      fields: 'id',
+    });
+
+    return createResponse.result.id;
+  }
+
+  /**
+   * List files in a specific folder to check for duplicates
+   */
+  async listFilesInFolder(folderId: string): Promise<Set<string>> {
+    if (!this.accessToken) {
+      throw new Error('No access token');
+    }
+
+    let pageToken = null;
+    const existingFiles = new Set<string>();
+
+    do {
+      const response: any = await window.gapi.client.drive.files.list({
+        q: `'${folderId}' in parents and trashed=false`,
+        fields: 'nextPageToken, files(id, name)',
+        spaces: 'drive',
+        pageToken: pageToken,
+      });
+
+      if (response.result.files) {
+        response.result.files.forEach((file: any) => {
+          if (file.name) existingFiles.add(file.name);
+        });
+      }
+      pageToken = response.result.nextPageToken;
+    } while (pageToken);
+
+    return existingFiles;
+  }
+
+  /**
+   * Upload a file to Google Drive folder using multipart/related
+   */
+  async uploadFile(file: File, folderId: string): Promise<void> {
+    if (!this.accessToken) {
+      throw new Error('No access token');
+    }
+
+    const metadata = {
+      name: file.name,
+      parents: [folderId],
+      mimeType: file.type || 'application/octet-stream',
+    };
+
+    const formData = new FormData();
+    // Metadata part needed to be distinct, simple fetch with multipart/related or multipart/form-data
+    // Google Drive API expects 'multipart/related' but 'multipart/form-data' often works if boundary is handled.
+    // However, the cleanest way with fetch is constructing the body manually or using form-data if the API accepts it.
+    // The standard way for Drive API v3 is multipart/related.
+
+    // Easier approach: Simple upload if small, but we need metadata (parent folder).
+    // Let's use the explicit multipart/related construction.
+
+    const boundary = 'foo_bar_baz';
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelim = `\r\n--${boundary}--`;
+
+    const metadataStr = JSON.stringify(metadata);
+    const contentType = file.type || 'application/octet-stream';
+
+    // We need to read the file as text/base64 or just use blob if we can constructs the body as a Blob.
+    // Constructing a composite Blob is best.
+
+    const multipartRequestBody = new Blob(
+      [
+        delimiter,
+        'Content-Type: application/json\r\n\r\n',
+        metadataStr,
+        delimiter,
+        `Content-Type: ${contentType}\r\n`,
+        'Content-Transfer-Encoding: base64\r\n\r\n',
+      ],
+      { type: 'application/json' }
+    );
+
+    // Wait, mixing Blob parts is tricky if we want to stream the file. 
+    // But we have the File object. Converting to base64 is safer for the text body construction.
+    const reader = new FileReader();
+    const base64Data = await new Promise<string>((resolve, reject) => {
+      reader.onload = () => {
+        const result = reader.result as string;
+        // remove data url prefix
+        resolve(result.split(',')[1]);
+      };
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
+
+    const body =
+      delimiter +
+      'Content-Type: application/json\r\n\r\n' +
+      metadataStr +
+      delimiter +
+      `Content-Type: ${contentType}\r\n` +
+      'Content-Transfer-Encoding: base64\r\n\r\n' +
+      base64Data +
+      closeDelim;
+
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': `multipart/related; boundary=${boundary}`,
+      },
+      body: body,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
   }
 

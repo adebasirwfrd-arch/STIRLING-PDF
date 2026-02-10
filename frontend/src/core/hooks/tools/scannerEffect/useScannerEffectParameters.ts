@@ -40,10 +40,14 @@ export function useScannerEffectParameters(): BaseParametersHook<ScannerEffectPa
 
   const getEndpointName = useCallback(() => 'scanner-effect', []);
 
+  const validateParameters = useCallback(() => true, []);
+
   return {
     parameters,
+    setParameters,
     updateParameter,
     resetParameters,
+    validateParameters,
     getEndpointName,
   };
 }
