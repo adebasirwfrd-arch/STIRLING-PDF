@@ -61,7 +61,9 @@ class FileStorageService {
       versionNumber: stub.versionNumber ?? 1,
       originalFileId: stub.originalFileId ?? stirlingFile.fileId,
       parentFileId: stub.parentFileId ?? undefined,
-      toolHistory: stub.toolHistory ?? []
+      toolHistory: stub.toolHistory ?? [],
+      folder: stub.folder,
+      tags: stub.tags
     };
 
     return new Promise((resolve, reject) => {
@@ -204,6 +206,8 @@ class FileStorageService {
               originalFileId: record.originalFileId || record.id,
               parentFileId: record.parentFileId,
               toolHistory: record.toolHistory || [],
+              folder: record.folder,
+              tags: record.tags,
               createdAt: Date.now()
             });
           }

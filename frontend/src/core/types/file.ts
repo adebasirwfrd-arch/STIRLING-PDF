@@ -35,4 +35,6 @@ export interface BaseFileMetadata {
   versionNumber: number; // Version number in chain
   parentFileId?: FileId; // Immediate parent file ID
   toolHistory?: ToolOperation[]; // Tool chain for history tracking
+  folder?: string; // Folder name for organization
+  tags?: string[]; // Tags for categorization (e.g., "scan")
 }

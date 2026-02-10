@@ -22,6 +22,7 @@ import FileManager from "@app/components/FileManager";
 import LocalIcon from "@app/components/shared/LocalIcon";
 import { useFilesModalContext } from "@app/contexts/FilesModalContext";
 import AppConfigModal from "@app/components/shared/AppConfigModal";
+import MyFilesWorkbench from "@app/components/myFiles/MyFilesWorkbench";
 
 import "@app/pages/HomePage.css";
 
@@ -42,6 +43,9 @@ export default function HomePage() {
     handleBackToTools,
     readerMode,
     setLeftPanelView,
+    registerCustomWorkbenchView,
+    unregisterCustomWorkbenchView,
+    setCustomWorkbenchViewData,
   } = useToolWorkflow();
 
   const { openFilesModal } = useFilesModalContext();
@@ -169,6 +173,22 @@ export default function HomePage() {
       }
     }
   }, [isMobile, activeMobileView, selectedTool, setLeftPanelView]);
+
+  useEffect(() => {
+    registerCustomWorkbenchView({
+      id: 'myFiles',
+      workbenchId: 'custom:myFiles' as any,
+      label: t('myFiles.title', 'My Files'),
+      icon: <LocalIcon icon="folder-special-rounded" />,
+      component: MyFilesWorkbench,
+    });
+    // Set some dummy data so the workbench renderer is happy
+    setCustomWorkbenchViewData('myFiles', {});
+
+    return () => {
+      unregisterCustomWorkbenchView('myFiles');
+    };
+  }, [registerCustomWorkbenchView, unregisterCustomWorkbenchView, setCustomWorkbenchViewData, t]);
 
   const baseUrl = useBaseUrl();
 

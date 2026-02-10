@@ -3,6 +3,9 @@ import { Modal, Stack, Button, Box, Text, Group, ActionIcon, Switch, Loader } fr
 import { useTranslation } from 'react-i18next';
 import LocalIcon from '@app/components/shared/LocalIcon';
 import { Z_INDEX_OVER_FILE_MANAGER_MODAL } from '@app/styles/zIndex';
+import { TextInput } from '@mantine/core';
+import { createStirlingFile, createNewStirlingFileStub } from '@app/types/fileContext';
+import { fileStorage } from '@app/services/fileStorage';
 
 interface CameraCaptureModalProps {
   opened: boolean;
@@ -22,6 +25,7 @@ export default function CameraCaptureModal({ opened, onClose, onCapture }: Camer
   const [torchSupported, setTorchSupported] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [folderName, setFolderName] = useState('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -207,8 +211,23 @@ export default function CameraCaptureModal({ opened, onClose, onCapture }: Camer
     if (!capturedImage) return;
     const response = await fetch(capturedImage);
     const blob = await response.blob();
-    const file = new File([blob], `scan-${Date.now()}.jpg`, { type: 'image/jpeg' });
-    onCapture(file);
+    const fileName = `scan-${Date.now()}.jpg`;
+    const file = new File([blob], fileName, { type: 'image/jpeg' });
+    
+    // Create StirlingFile and Stub with folder/tags
+    const stirlingFile = createStirlingFile(file);
+    const stub = createNewStirlingFileStub(file, stirlingFile.fileId);
+    stub.folder = folderName.trim() || t('camera.defaultFolder', 'Scans');
+    stub.tags = ['scan'];
+
+    // Persist to storage for "My Files" access
+    try {
+      await fileStorage.storeStirlingFile(stirlingFile, stub);
+    } catch (error) {
+      console.error('Failed to persist scan:', error);
+    }
+
+    onCapture(stirlingFile);
     onClose();
     setCapturedImage(null);
   };
@@ -253,6 +272,21 @@ export default function CameraCaptureModal({ opened, onClose, onCapture }: Camer
                   checked={autoCrop}
                   onChange={(e) => setAutoCrop(e.currentTarget.checked)}
                   styles={{ label: { color: '#fff' } }}
+                />
+                <TextInput
+                  placeholder={t('camera.folderPlaceholder', 'Enter folder name...')}
+                  value={folderName}
+                  onChange={(e) => setFolderName(e.target.value)}
+                  size="xs"
+                  styles={{
+                    input: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      color: '#fff',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '4px',
+                      width: '150px'
+                    }
+                  }}
                 />
                 {torchSupported && (
                   <ActionIcon variant="filled" color="yellow" onClick={toggleTorch} size="lg">

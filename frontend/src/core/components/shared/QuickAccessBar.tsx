@@ -161,6 +161,18 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
       type: 'modal',
       onClick: handleFilesButtonClick
     },
+    {
+      id: 'myFiles',
+      name: t("myFiles.title", "My Files"),
+      icon: <LocalIcon icon="folder-special-rounded" width="1.25rem" height="1.25rem" />,
+      isRound: true,
+      size: 'md',
+      type: 'navigation',
+      onClick: () => {
+        setActiveButton('myFiles');
+        navigationActions.setWorkbench('custom:myFiles' as any);
+      }
+    },
   ];
   //TODO: Activity
   //{
