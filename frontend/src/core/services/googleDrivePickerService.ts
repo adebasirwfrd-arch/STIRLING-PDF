@@ -86,7 +86,7 @@ class GoogleDrivePickerService {
 
     return new Promise((resolve) => {
       window.gapi.load('client:picker', async () => {
-        await window.gapi.client.load('https://discovery.googleapis.com/discovery/v1/apis/drive/v3/rest');
+        await window.gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
         this.gapiLoaded = true;
         resolve();
       });
