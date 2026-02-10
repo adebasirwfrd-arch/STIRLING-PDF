@@ -57,7 +57,7 @@ class GoogleDrivePickerService {
   private gisLoaded = false;
 
   constructor() {
-    this.accessToken = sessionStorage.getItem(SESSION_STORAGE_ID);
+    this.accessToken = localStorage.getItem(SESSION_STORAGE_ID);
   }
 
   /**
@@ -86,7 +86,7 @@ class GoogleDrivePickerService {
 
     return new Promise((resolve) => {
       window.gapi.load('client:picker', async () => {
-        await window.gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+        await window.gapi.client.load('https://discovery.googleapis.com/discovery/v1/apis/drive/v3/rest');
         this.gapiLoaded = true;
         resolve();
       });
@@ -111,7 +111,7 @@ class GoogleDrivePickerService {
     this.tokenClient = window.google.accounts.oauth2.initTokenClient({
       client_id: this.config.clientId,
       scope: SCOPES,
-      callback: () => {}, // Will be overridden during picker creation
+      callback: () => { }, // Will be overridden during picker creation
     });
 
     this.gisLoaded = true;
@@ -125,8 +125,10 @@ class GoogleDrivePickerService {
       throw new Error('Google Drive service not initialized');
     }
 
-    // Request access token
-    await this.requestAccessToken();
+    // Request access token if not present
+    if (!this.accessToken) {
+      await this.requestAccessToken();
+    }
 
     // Create and show picker
     return this.createPicker(options);
@@ -147,17 +149,18 @@ class GoogleDrivePickerService {
           reject(new Error(response.error));
           return;
         }
-        if(response.access_token == null){
-          reject(new Error("No acces token in response"));
+        if (response.access_token == null) {
+          reject(new Error("No access token in response"));
         }
 
         this.accessToken = response.access_token;
-        sessionStorage.setItem(SESSION_STORAGE_ID, this.accessToken ?? "");
+        localStorage.setItem(SESSION_STORAGE_ID, this.accessToken ?? "");
         resolve();
       };
 
+      // prompt: '' enables silent token acquisition if possible
       this.tokenClient.requestAccessToken({
-        prompt: this.accessToken === null ? 'consent' : '',
+        prompt: '',
       });
     });
   }
@@ -249,7 +252,7 @@ class GoogleDrivePickerService {
   signOut(): void {
     if (this.accessToken) {
       sessionStorage.removeItem(SESSION_STORAGE_ID);
-      window.google?.accounts.oauth2.revoke(this.accessToken, () => {});
+      window.google?.accounts.oauth2.revoke(this.accessToken, () => { });
       this.accessToken = null;
     }
   }
