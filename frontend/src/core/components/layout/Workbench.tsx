@@ -190,7 +190,7 @@ export default function Workbench() {
       }
     >
       {/* Top Controls - Hide in PDF Text Editor */}
-      {activeFiles.length > 0 && currentView !== 'custom:pdfTextEditor' && (
+      {activeFiles.length > 0 && selectedToolId !== 'pdfTextEditor' && currentView !== 'custom:pdfTextEditor' && (
         <TopControls
           currentView={currentView}
           setCurrentView={setCurrentView}
@@ -219,7 +219,7 @@ export default function Workbench() {
       </Box>
 
       {/* Footer - Hide in PDF Text Editor */}
-      {currentView !== 'custom:pdfTextEditor' && (
+      {selectedToolId !== 'pdfTextEditor' && currentView !== 'custom:pdfTextEditor' && (
         <Footer
           analyticsEnabled={config?.enableAnalytics === true}
           termsAndConditions={config?.termsAndConditions}
