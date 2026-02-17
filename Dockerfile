@@ -10,7 +10,7 @@ COPY frontend .
 RUN DISABLE_ADDITIONAL_FEATURES=false VITE_API_BASE_URL=/ npm run build
 
 # Stage 2: Build Backend
-FROM gradle:8.14-jdk21 AS backend-build
+FROM gradle:9.3-jdk21 AS backend-build
 WORKDIR /app
 COPY . .
 RUN DISABLE_ADDITIONAL_FEATURES=false \
