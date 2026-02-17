@@ -17,7 +17,7 @@ RUN DISABLE_ADDITIONAL_FEATURES=false \
     ./gradlew clean build -x spotlessApply -x spotlessCheck -x test -x sonarqube
 
 # Stage 3: Final unified image
-FROM alpine:3.22.1
+FROM alpine:3.23.3
 
 # Install all dependencies
 RUN echo "@main https://dl-cdn.alpinelinux.org/alpine/edge/main" | tee -a /etc/apk/repositories && \
