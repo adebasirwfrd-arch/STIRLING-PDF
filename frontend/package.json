@@ -61,7 +61,7 @@
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.149",
     "peerjs": "^1.5.5",
-    "posthog-js": "^1.268.0",
+    "posthog-js": "^1.345.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
