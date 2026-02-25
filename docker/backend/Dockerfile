@@ -31,7 +31,7 @@ RUN DISABLE_ADDITIONAL_FEATURES=false \
 # STAGE 2: Runtime image based on Debian stable-slim
 # Contains Java runtime + LibreOffice + Calibre + all PDF tools
 # ========================================
-FROM debian:stable-slim@sha256:7cb087f19bcc175b96fbe4c2aef42ed00733a659581a80f6ebccfd8fe3185a3d
+FROM debian:stable-slim@sha256:4448d44b91bf4a13cb1b4e02d9d5f87ed40621d6e33f0ae7b6ddf71d57e29364
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
