@@ -1,5 +1,5 @@
 # Frontend Dockerfile - React/Vite application
-FROM node:25-alpine@sha256:e80397b81fa93888b5f855e8bef37d9b18d3c5eb38b8731fc23d6d878647340f AS build
+FROM node:25-alpine@sha256:c8d96e95e88f08f814af06415db9cfd5ab4ebcdf40721327ff2172ff25cfb997 AS build
 
 WORKDIR /app
 
